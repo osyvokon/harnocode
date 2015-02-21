@@ -13,22 +13,19 @@
   (let [output-area (dom/getElement "output")]
     (when output-area (set! (.-value output-area) harnocode))))
 
-
-
-
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
   [(first ts) (rest ts)])
 
 (defn fill-group [[result tokens] group]
     (if (== (first group) 0)
-      [(string/join result (repeat (count group) "_")) tokens]
+      [(conj result (string/join (repeat (count group) "_"))) tokens]
       (let [[column rest-ts] (fill-column tokens (count group))]
-        [(string/join result column) rest-ts])))
+        [(conj result column) rest-ts])))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)]
-    (first (reduce fill-group ["" ts] groups))))
+    (first (reduce fill-group [[] ts] groups))))
 
 (defn arrange-tokens [ts img]
   (map #(arrange-tokens-line ts %) img))
@@ -46,15 +43,16 @@
     ))
     
 
-(let [code      "var answer = 42;"
+(let [code      "var a = 42; var b = 'hello';"
       img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
       width     (count (first img))
       harnocode (harnify code img width)]
