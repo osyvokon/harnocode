@@ -1,7 +1,8 @@
 (ns ^:figwheel-always harnocode.core
-    (:require [goog.dom :as dom]
-              [clojure.string :as string]
-              [figwheel.client :as fw]))
+  (:require [goog.dom :as dom]
+            [goog.events :as events]
+            [clojure.string :as string]
+            [figwheel.client :as fw]))
 
 (enable-console-print!)
 
@@ -44,7 +45,7 @@
     (comment apply str (interleave ts (repeat " ")))
     (string/join "\n" (arrange-tokens ts img))         ; img must be resized by now, no need in w
     ))
-    
+
 
 (let [code      "var answer = 42;"
       img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
@@ -65,3 +66,59 @@
 (fw/start {
   :load-warninged-code true
 })
+
+;document.getElementById('pixels').innerHTML = '';
+;                                               var image = new Image();
+;image.src = reader.result;
+;image.onload = function() {
+;                           canvas.width = image.width;
+;                                          canvas.height = image.height;
+;                           context.drawImage(image, 0, 0);
+;                           var pixels = blackAndWhite(context, canvas);
+;                                                     var s = '';
+;                                                              for (var i = 0; i < pixels.length; i++) {
+;                                                                       var row = pixels[i];
+;                                                                       for (var j = 0; j < row.length; j++) {
+;                                                                                var symbol = row[j];
+;                                                                                s += (symbol == 1 ? symbol: "&nbsp;&nbsp;");
+;                           }
+;s += '<br/>';
+;
+;document.getElementById('pixels').innerHTML = s;
+
+(defn black-and-white [context canvas]
+  [])
+
+;(defn onimageload [image canvas context]
+;  (set! (.-width canvas (.-width image)))
+;  (set! (.-height canvas (.-height image)))
+;  (.drawImage canvas image 0 0)
+;  (let [pixels (black-and-white context canvas)]
+;    (.log js/console pixels)))
+
+;(defn onreaderload [reader]
+;  (let [pixels-div dom/getElement "pixels"
+;        image (js/Image.)]
+;    (set! (.-src image (:result reader)))
+;    (set! (.-onload image onimageload))
+;    (set! (.-innerHTML pixels-div ""))))
+
+(defn handle-files [files]
+  {:pre [(not (empty? files))
+         (not (empty? (nth files 0)))]}
+  ;(let [canvas dom/getElement "viewport"
+  ;      a (.log js/console canvas)
+  ;      context (.getContext canvas "2d")
+  ;      b (.log js/console context)
+  ;      f (nth files 0)
+  ;      c(.log js/console f)
+  ;      reader (js/FileReader.)]
+  ;  (set! (.-onloadend reader) onreaderload)
+  ;  (.readAsDataURL reader f))
+  (.log js/console "handle files")
+  )
+
+(defn main []
+  (.log js/console "main")
+  (let [fileUpload (dom/getElement "fileInput")]
+    (events/listen fileUpload "change" handle-files)))
