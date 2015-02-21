@@ -13,6 +13,27 @@
   (let [output-area (dom/getElement "output")]
     (set! (.-value output-area) harnocode)))
 
+
+
+
+;; Best try on filling "column" of l subsequent ones with one or more tokens
+(defn fill-column [ts l]
+  [(first ts) (rest ts)])
+
+(defn fill-group [[result tokens] group]
+    (if (== (first group) 0)
+      [(string/join result (repeat (count group) "_")) tokens]
+      (let [[column rest-ts] (fill-column tokens (count group))]
+        [(string/join result column) rest-ts])))
+
+(defn arrange-tokens-line [ts line]
+  (let [groups (partition-by identity line)]
+    (first (reduce fill-group ["" ts] groups))))
+
+(defn arrange-tokens [ts img]
+  (map #(arrange-tokens-line ts %) img))
+
+
 ;; Tries hard to make piece of code look like img
 ;; code -- string
 ;; img  -- 2d matrix of 0's and 1's
@@ -23,18 +44,7 @@
     (comment apply str (interleave ts (repeat " ")))
     (string/join "\n" (arrange-tokens ts img))         ; img must be resized by now, no need in w
     ))
-
-(defn arrange-tokens [ts img]
-  (map #(arrange-tokens-line ts %) img))
-
-(defn arrange-tokens-line [ts line]
-  (let [groups (partition-by identity line)]
-    (identity (reductions
-      (fn [tokens group]
-        (string/join (if (== (first group) 0)
-                       (repeat (count group) "0")
-                       (repeat (count group) "1"))))
-       "" groups))))
+    
 
 (let [code      "var answer = 42;"
       img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]

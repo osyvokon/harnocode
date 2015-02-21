@@ -54,7 +54,7 @@
                         var row = pixels[i];
                         for (var j = 0; j < row.length; j++) {
                             var symbol = row[j];
-                            s += (symbol == 1 ? symbol: "&nbsp;&nbsp;");
+                            s += (symbol == 1 ? ("" + symbol + symbol): "&nbsp;&nbsp;");
                         }
                         s += '<br/>';
                     }
