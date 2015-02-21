@@ -50,16 +50,21 @@
   (fn [[result tokens] group]
     (first group)))
 
-(defmethod fill-group 0 [[result tokens] group]
-  [(conj result (string/join (repeat (count group) " "))) tokens])
+;; shorten defined for 0 group only: how much chars "eaten" by preceding 1-groups
+(defmethod fill-group 0 [[result tokens shorten] group]
+  (let [l (max 1 (- (count group) shorten))]
+   [(conj result (string/join (repeat l " "))) tokens 0]))
 
-(defmethod fill-group 1 [[result tokens] group]
-      (let [[column rest-ts] (fill-column tokens (count group))]
-        [(conj result column) rest-ts]))
+(defmethod fill-group 1 [[result tokens _] group]
+      (let [l                (count group)
+            [column rest-ts] (fill-column tokens l)
+            extra-len (- (count column) l)]
+        (println extra-len)
+        [(conj result column) rest-ts extra-len]))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)
-        [this-line-tokens ts-rest] (reduce fill-group [[] ts] groups)]
+        [this-line-tokens ts-rest _] (reduce fill-group [[] ts 0] groups)]
     [(string/join this-line-tokens) ts-rest]))
 
 (defn arrange-tokens [ts img]
