@@ -9,6 +9,23 @@
     <p>Checkout your developer console.</p>
 </div>
 <script type="text/javascript">
+    function blackAndWhite(context, canvas) {
+        var imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+        var pixels  = imgData.data;
+        for (var i = 0, n = pixels.length; i < n; i += 4) {
+            // http://clojure-lab.tumblr.com/post/35054719442/working-with-pictures-uploading
+            var grayscale = pixels[i] * .3 + pixels[i+1] * .59 + pixels[i+2] * .11;
+            if (grayscale > 255/3) {
+                pixels[i] = pixels[i+1] = pixels[i+2] = 255;
+            }
+            else {
+                pixels[i] = pixels[i+1] = pixels[i+2] = 0;
+            }
+        }
+        //redraw the image in black & white
+        context.putImageData(imgData, 0, 0);
+    }
+
     function handleFiles(files) {
         var canvas = document.getElementById('viewport'),
                 context = canvas.getContext('2d');
@@ -24,6 +41,7 @@
                     canvas.width = image.width;
                     canvas.height = image.height;
                     context.drawImage(image, 0, 0);
+                    blackAndWhite(context, canvas);
                 }
 
             };
