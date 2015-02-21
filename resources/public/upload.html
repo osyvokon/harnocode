@@ -10,20 +10,26 @@
 </div>
 <script type="text/javascript">
     function blackAndWhite(context, canvas) {
+        var result = [];
         var imgData = context.getImageData(0, 0, canvas.width, canvas.height);
         var pixels  = imgData.data;
+        var pixelToArray = function(i, isBlack) {
+            var row = Math.floor(i / canvas.width);
+            if (result[row] == null) {
+                result[row] = [];
+            }
+            result[row].push(isBlack ? 1: 0);
+        };
         for (var i = 0, n = pixels.length; i < n; i += 4) {
             // http://clojure-lab.tumblr.com/post/35054719442/working-with-pictures-uploading
             var grayscale = pixels[i] * .3 + pixels[i+1] * .59 + pixels[i+2] * .11;
-            if (grayscale > 255/3) {
-                pixels[i] = pixels[i+1] = pixels[i+2] = 255;
-            }
-            else {
-                pixels[i] = pixels[i+1] = pixels[i+2] = 0;
-            }
+            var color = (grayscale > 255/2) ? 255: 0;
+            pixels[i] = pixels[i+1] = pixels[i+2] = color;
+            pixelToArray(i / 4, color == 0);
         }
         //redraw the image in black & white
         context.putImageData(imgData, 0, 0);
+        return result;
     }
 
     function handleFiles(files) {
@@ -35,13 +41,24 @@
             var reader = new FileReader();
             // Closure to capture the file information.
             reader.onloadend = function () {
+                document.getElementById('pixels').innerHTML = '';
                 var image = new Image();
                 image.src = reader.result;
                 image.onload = function() {
                     canvas.width = image.width;
                     canvas.height = image.height;
                     context.drawImage(image, 0, 0);
-                    blackAndWhite(context, canvas);
+                    var pixels = blackAndWhite(context, canvas);
+                    var s = '';
+                    for (var i = 0; i < pixels.length; i++) {
+                        var row = pixels[i];
+                        for (var j = 0; j < row.length; j++) {
+                            var symbol = row[j];
+                            s += (symbol == 1 ? symbol: "&nbsp;&nbsp;");
+                        }
+                        s += '<br/>';
+                    }
+                    document.getElementById('pixels').innerHTML = s;
                 }
 
             };
@@ -51,5 +68,6 @@
 </script>
     <input multiple="false" type="file" id="input" onchange="handleFiles(this.files)">
     <canvas id="viewport"></canvas>
+    <div id="pixels" style="font-family: 'Courier New', Monospace;font-size: small"></div>
 </body>
 </html>
