@@ -16,11 +16,16 @@
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
   (let [f (fn [terms-so-far term]
-            (if (> (apply + (map count terms-so-far)) l)
+            (if (> (apply + (map #(+ 1 (count %)) terms-so-far)) l)
               (reduced terms-so-far)
               (conj terms-so-far term)))
-        terms-that-fit (reduce f [(first ts)] (rest ts))]
-   [terms-that-fit (drop (count terms-that-fit) ts)]))
+        terms-that-fit (reduce f [(first ts)] (rest ts))
+        ts-rest (drop (count terms-that-fit) ts)]
+   [(insert-spaces terms-that-fit l) ts-rest]))
+
+;; Insert spaces between terms so they occupy exactly l chars
+(defn insert-spaces [terms l]
+  (string/join " " terms))
 
 (defmulti fill-group
   (fn [[result tokens] group]
