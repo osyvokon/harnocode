@@ -221,6 +221,11 @@
                    (swap! result conj val)))
     @result))
 
+(defn array-to-arrays [src w acc]
+  (let [[h t] (split-at w src)]
+    (if (empty? t) h (array-to-arrays t w (assoc acc (count acc) h)))
+  ))
+
 (defn black-and-white [context canvas]
   (let [pixels (get-pixels context canvas)
         greyscale (fn[r g b alpha]
@@ -230,7 +235,7 @@
              (if (nil? a)
               result
               (recur rest-pixels (conj result (greyscale r g b a)))))]
-    (f pixels [])))
+    (array-to-arrays (f pixels []) (.-width canvas) [])))
 
 
 (defn on-image-load [event]
@@ -241,7 +246,8 @@
     (set! (.-height canvas) (.-height image))
     (.drawImage context image 0 0)
     (let [pixels (black-and-white context canvas)]
-      (print pixels))
+      (print pixels)
+      (print (alength pixels)))
     )
   )
 
