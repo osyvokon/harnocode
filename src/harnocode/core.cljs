@@ -185,11 +185,14 @@
 
 (defn black-and-white [context canvas]
   (let [pixels (get-pixels context canvas)
-        greyscale (fn[r g b alpha](
-                             (let [grey (+ (* r 0.3) (* g 0.59) (* b 0.11))]
-                               (if (> grey (/ 255 2)) 255 0))))]
-    ;; TODO
-    (reduce greyscale [] pixels)))
+        greyscale (fn[r g b alpha]
+            (let [grey (+ (* r 0.3) (* g 0.59) (* b 0.11))]
+             (if (> grey (/ 255 2)) 1 0)))
+        f  (fn [[r g b a & rest-pixels] result]
+             (if (nil? a)
+              result
+              (recur rest-pixels (conj result (greyscale r g b a)))))]
+    (f pixels [])))
 
 
 (defn on-image-load [event]
