@@ -80,7 +80,61 @@
     ))
     
 
-(let [code      "var a = 42; var b = 'hello';"
+(let [code      "function skipComment() {
+        var ch, start;
+
+        start = (index === 0);
+        while (index < length) {
+            ch = source.charCodeAt(index);
+
+            if (isWhiteSpace(ch)) {
+                ++index;
+            } else if (isLineTerminator(ch)) {
+                ++index;
+                if (ch === 0x0D && source.charCodeAt(index) === 0x0A) {
+                    ++index;
+                }
+                ++lineNumber;
+                lineStart = index;
+                start = true;
+            } else if (ch === 0x2F) { // U+002F is '/'
+                ch = source.charCodeAt(index + 1);
+                if (ch === 0x2F) {
+                    ++index;
+                    ++index;
+                    skipSingleLineComment(2);
+                    start = true;
+                } else if (ch === 0x2A) {  // U+002A is '*'
+                    ++index;
+                    ++index;
+                    skipMultiLineComment();
+                } else {
+                    break;
+                }
+            } else if (start && ch === 0x2D) { // U+002D is '-'
+                // U+003E is '>'
+                if ((source.charCodeAt(index + 1) === 0x2D) && (source.charCodeAt(index + 2) === 0x3E)) {
+                    // '-->' is a single-line comment
+                    index += 3;
+                    skipSingleLineComment(3);
+                } else {
+                    break;
+                }
+            } else if (ch === 0x3C) { // U+003C is '<'
+                if (source.slice(index + 1, index + 4) === '!--') {
+                    ++index; // `<`
+                    ++index; // `!`
+                    ++index; // `-`
+                    ++index; // `-`
+                    skipSingleLineComment(4);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+    }"
       img       [[0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
