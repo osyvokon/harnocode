@@ -37,7 +37,7 @@
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
   (let [f (fn [terms-so-far term]
-            (if (> (apply + (map #(+ 1 (count %)) terms-so-far)) l)
+            (if (>= (apply + (map #(+ 1 (count %)) terms-so-far)) l)
               (reduced terms-so-far)
               (conj terms-so-far term)))
         terms-that-fit (reduce f [(first ts)] (rest ts))
@@ -57,11 +57,15 @@
         [(conj result column) rest-ts]))
 
 (defn arrange-tokens-line [ts line]
-  (let [groups (partition-by identity line)]
-    (first (reduce fill-group [[] ts] groups))))
+  (let [groups (partition-by identity line)
+        [this-line-tokens ts-rest] (reduce fill-group [[] ts] groups)]
+    [(string/join this-line-tokens) ts-rest]))
 
 (defn arrange-tokens [ts img]
-  (map #(string/join (arrange-tokens-line ts %)) img))
+  (if (empty? img)
+    []
+    (let [[line ts-rest] (arrange-tokens-line ts (first img))]
+      (conj (arrange-tokens ts-rest (rest img)) line))))
 
 
 ;; Tries hard to make piece of code look like img
@@ -72,7 +76,7 @@
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts (map :value tokens)]
     (comment apply str (interleave ts (repeat " ")))
-    (string/join "\n" (arrange-tokens ts img))              ; img must be resized by now, no need in w
+    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
     
 
