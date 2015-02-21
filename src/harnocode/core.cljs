@@ -5,6 +5,7 @@
             [clojure.string :as string]
             [figwheel.client :as fw]))
 
+;; TODO: make spacing more even
 (enable-console-print!)
 
 (defn to-clj-array [js-col]
@@ -21,22 +22,51 @@
   (let [output-area (dom/getElement "output")]
     (when output-area (set! (.-value output-area) harnocode))))
 
+;; Ugly, but have no time to find a better way
+(defn insert [v pos item] 
+  (let [[h t] (split-at pos v)]
+    (vec (concat h [item] t))))
+
+;; Insert spaces between terms so they occupy exactly l chars
+;; TODO: make spacing more even
+(defn insert-spaces [terms l]
+  (let [terms-interleaved (butlast (interleave terms (cycle " "))) ;; TODO: need better interleave that would work as string.join (without last space)
+        spaces-needed (- l (apply + (map count terms-interleaved)))
+        f (fn [terms _] (insert terms (inc (rand-int (- (count terms) 1))) " "))]
+    (string/join (reduce f terms-interleaved (range spaces-needed)))))
+
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
-  [(first ts) (rest ts)])
+  (let [f (fn [terms-so-far term]
+            (if (>= (apply + (map #(+ 1 (count %)) terms-so-far)) l)
+              (reduced terms-so-far)
+              (conj terms-so-far term)))
+        terms-that-fit (reduce f [(first ts)] (rest ts))
+        ts-rest (drop (count terms-that-fit) ts)]
+   [(insert-spaces terms-that-fit l) ts-rest]))
 
-(defn fill-group [[result tokens] group]
-  (if (== (first group) 0)
-    [(string/join result (repeat (count group) "_")) tokens]
-    (let [[column rest-ts] (fill-column tokens (count group))]
-      [(string/join result column) rest-ts])))
+
+(defmulti fill-group
+  (fn [[result tokens] group]
+    (first group)))
+
+(defmethod fill-group 0 [[result tokens] group]
+  [(conj result (string/join (repeat (count group) " "))) tokens])
+
+(defmethod fill-group 1 [[result tokens] group]
+      (let [[column rest-ts] (fill-column tokens (count group))]
+        [(conj result column) rest-ts]))
 
 (defn arrange-tokens-line [ts line]
-  (let [groups (partition-by identity line)]
-    (first (reduce fill-group ["" ts] groups))))
+  (let [groups (partition-by identity line)
+        [this-line-tokens ts-rest] (reduce fill-group [[] ts] groups)]
+    [(string/join this-line-tokens) ts-rest]))
 
 (defn arrange-tokens [ts img]
-  (map #(arrange-tokens-line ts %) img))
+  (if (empty? img)
+    []
+    (let [[line ts-rest] (arrange-tokens-line ts (first img))]
+      (conj (arrange-tokens ts-rest (rest img)) line))))
 
 
 ;; Tries hard to make piece of code look like img
@@ -47,21 +77,22 @@
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts (map :value tokens)]
     (comment apply str (interleave ts (repeat " ")))
-    (string/join "\n" (arrange-tokens ts img))              ; img must be resized by now, no need in w
+    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
+    
 
-
-(let [code "var answer = 42;"
-      img [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
-      width (count (first img))
+(let [code      "var a = 42; var b = 'hello';"
+      img       [[0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
+      width     (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
 
