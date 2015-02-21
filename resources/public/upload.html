@@ -6,8 +6,9 @@
 <body>
 <div id="app">
     <h2>Figwheel template</h2>
-    <p>Checkout your developer console.</p>
 </div>
+<script src="js/lib/esprima/esprima.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/compiled/harnocode.js"></script>
 <script type="text/javascript">
     function blackAndWhite(context, canvas) {
         var result = [];
@@ -35,7 +36,6 @@
     function handleFiles(files) {
         var canvas = document.getElementById('viewport'),
                 context = canvas.getContext('2d');
-        console.log(files);
         if (files && files[0]) {
             var f = files[0];
             var reader = new FileReader();
@@ -66,8 +66,10 @@
         }
     }
 </script>
-    <input multiple="false" type="file" id="input" onchange="handleFiles(this.files)">
-    <canvas id="viewport"></canvas>
-    <div id="pixels" style="font-family: 'Courier New', Monospace;font-size: small"></div>
+    <main>
+        <input multiple="false" type="file" id="fileInput">
+        <canvas id="viewport"></canvas>
+        <div id="pixels" style="font-family: 'Courier New', Monospace;font-size: small"></div>
+    </main>
 </body>
 </html>
