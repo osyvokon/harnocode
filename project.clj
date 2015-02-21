@@ -10,7 +10,8 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
 
   :plugins [[lein-cljsbuild "1.0.4"]
-            [lein-figwheel "0.2.5-SNAPSHOT"]]
+            [lein-figwheel "0.2.5-SNAPSHOT"]
+            [lein-bower "0.5.1"]]
 
   :source-paths ["src"]
 
@@ -33,6 +34,9 @@
                          :main harnocode.core                         
                          :optimizations :advanced
                          :pretty-print false}}]}
+
+  :bower-dependencies [[esprima "~1.2"]]
+  :bower {:directory "resources/public/js/lib"}
 
   :figwheel {
              :http-server-root "public" ;; default and assumes "resources" 
