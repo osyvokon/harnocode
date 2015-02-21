@@ -59,7 +59,6 @@
       (let [l                (count group)
             [column rest-ts] (fill-column tokens l)
             extra-len (- (count column) l)]
-        (println extra-len)
         [(conj result column) rest-ts extra-len]))
 
 (defn arrange-tokens-line [ts line]
@@ -88,6 +87,10 @@
    (str (:value token))
    (str (:value token) " ")))
 
+(defn invert-image [img]
+  (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
+   (map invert-row img)))
+
 ;; Tries hard to make piece of code look like img
 ;; code -- string
 ;; img  -- 2d matrix of 0's and 1's
@@ -95,7 +98,7 @@
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts (map token-to-text tokens)]
-    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
+    (string/join "\n" (reverse (arrange-tokens ts (invert-image img))))              ; img must be resized by now, no need in w
     ))
 
 (let [code      "function skipComment() {
