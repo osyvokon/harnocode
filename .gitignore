@@ -12,3 +12,6 @@ pom.xml
 .repl
 .nrepl-port
 *.swp
+.lein-failures
+.idea
+atlassian-ide-plugin.xml
