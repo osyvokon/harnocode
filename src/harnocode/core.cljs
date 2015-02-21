@@ -208,7 +208,8 @@
 
 (defonce setup-stuff
   (do
-    (events/listen (dom/getElement "go") "click" go-click-listener)))
+    (let [button (dom/getElement "go")]
+      (when button (events/listen button "click" go-click-listener)))))
 
 (defn get-pixels [context canvas]
   (let [w (.-width canvas)
