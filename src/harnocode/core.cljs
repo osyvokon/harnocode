@@ -3,6 +3,7 @@
               [clojure.string :as string]
               [figwheel.client :as fw]))
 
+;; TODO: make spacing more even
 (enable-console-print!)
 
 ;; define your app data so that it doesn't get over-written on reload
@@ -12,6 +13,19 @@
 (defn show-harnocode! [harnocode]
   (let [output-area (dom/getElement "output")]
     (when output-area (set! (.-value output-area) harnocode))))
+
+;; Ugly, but have no time to find a better way
+(defn insert [v pos item] 
+  (let [[h t] (split-at pos v)]
+    (vec (concat h [item] t))))
+
+;; Insert spaces between terms so they occupy exactly l chars
+;; TODO: make spacing more even
+(defn insert-spaces [terms l]
+  (let [terms-interleaved (butlast (interleave terms (cycle " "))) ;; TODO: need better interleave that would work as string.join (without last space)
+        spaces-needed (- l (apply + (map count terms-interleaved)))
+        f (fn [terms _] (insert terms (inc (rand-int (- (count terms) 1))) " "))]
+    (string/join (reduce f terms-interleaved (range spaces-needed)))))
 
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
@@ -23,9 +37,6 @@
         ts-rest (drop (count terms-that-fit) ts)]
    [(insert-spaces terms-that-fit l) ts-rest]))
 
-;; Insert spaces between terms so they occupy exactly l chars
-(defn insert-spaces [terms l]
-  (string/join " " terms))
 
 (defmulti fill-group
   (fn [[result tokens] group]
@@ -59,8 +70,8 @@
     
 
 (let [code      "var a = 42; var b = 'hello';"
-      img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+      img       [[0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
                  [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
