@@ -117,13 +117,14 @@
   (.log js/console "handle files")
   )
 
-(def window (dom/getWindow))
-(events/listen window "domready"
+(def w (dom/getWindow))
+(events/listen w
+               (.-DOMCONTENTLOADED events/EventType)
                (fn [] (
-                        (let [fileUpload (dom/getElement "fileInput")]
-                          (when fileUpload
-                            (events/listen fileUpload "change" handle-files))
-                          )
-                        (.log js/console "domready")
+                        (let [file-upload (dom/getElement "fileInput")]
+                          (when file-upload
+                            (print file-upload)
+                            (events/listen file-upload "change" handle-files)))
+                        (print "domready")
                         )))
 
