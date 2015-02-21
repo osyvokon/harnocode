@@ -119,13 +119,11 @@
 
 (def window (dom/getWindow))
 (events/listen window "domready"
-               ;#(let [fileUpload (dom/getElement "fileInput")]
-               ;  (when fileUpload
-               ;    (events/listen fileUpload "change" handle-files))
-               ;  )
                (fn [] (
-                       (.log js/console "domready")
-                       ))
-               )
-
+                        (let [fileUpload (dom/getElement "fileInput")]
+                          (when fileUpload
+                            (events/listen fileUpload "change" handle-files))
+                          )
+                        (.log js/console "domready")
+                        )))
 
