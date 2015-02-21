@@ -11,7 +11,7 @@
 
 (defn show-harnocode! [harnocode]
   (let [output-area (dom/getElement "output")]
-    (set! (.-value output-area) harnocode)))
+    (when output-area (set! (.-value output-area) harnocode))))
 
 
 
