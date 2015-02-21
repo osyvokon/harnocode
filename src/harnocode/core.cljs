@@ -50,7 +50,7 @@
     (first group)))
 
 (defmethod fill-group 0 [[result tokens] group]
-  [(conj result (string/join (repeat (count group) "_"))) tokens])
+  [(conj result (string/join (repeat (count group) " "))) tokens])
 
 (defmethod fill-group 1 [[result tokens] group]
       (let [[column rest-ts] (fill-column tokens (count group))]
@@ -61,7 +61,7 @@
     (first (reduce fill-group [[] ts] groups))))
 
 (defn arrange-tokens [ts img]
-  (map #(arrange-tokens-line ts %) img))
+  (map #(string/join (arrange-tokens-line ts %)) img))
 
 
 ;; Tries hard to make piece of code look like img
