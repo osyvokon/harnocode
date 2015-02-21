@@ -15,7 +15,12 @@
 
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
-  [(first ts) (rest ts)])
+  (let [f (fn [terms-so-far term]
+            (if (> (apply + (map count terms-so-far)) l)
+              (reduced terms-so-far)
+              (conj terms-so-far term)))
+        terms-that-fit (reduce f [(first ts)] (rest ts))]
+   [terms-that-fit (drop (count terms-that-fit) ts)]))
 
 (defmulti fill-group
   (fn [[result tokens] group]
