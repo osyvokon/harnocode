@@ -77,11 +77,15 @@
     (println (map :value tokens))
     (map :value tokens)))
 
-;; TODO: smarter whitespace handling -- we don't need that much whitespace
-(defn token-to-text [token]
-  (if (= (:type token) "Punctuator")
-   (str (:value token))
-   (str (:value token) " ")))
+;; TODO
+(defn tokens-to-text [[t1 t2 & tokens] result]
+  (if (nil? t1) result
+    (if (nil? t2) (conj result (:value t2))
+      (let [t1-punct? (= (:type t1) "Punctuator")
+            t2-punct? (= (:type t2) "Punctuator")
+            need-space (and (not t1-punct?) (not t2-punct?))
+            t1-text (str (:value t1) (if need-space " " ""))]
+        (recur (conj tokens t2) (conj result t1-text))))))
 
 (defn invert-image [img]
   (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
@@ -93,7 +97,7 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (map token-to-text tokens)]
+        ts (tokens-to-text tokens [])]
     (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
 
