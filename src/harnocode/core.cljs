@@ -29,7 +29,7 @@
 ;; Insert spaces between terms so they occupy exactly l chars
 ;; TODO: make spacing more even
 (defn insert-spaces [terms l]
-  (let [terms-interleaved (butlast (interleave terms (cycle " "))) ;; TODO: need better interleave that would work as string.join (without last space)
+  (let [terms-interleaved terms ;; TODO: need better interleave that would work as string.join (without last space)
         spaces-needed (- l (apply + (map count terms-interleaved)))
         f (fn [terms _] (insert terms (inc (rand-int (- (count terms) 1))) " "))]
     (string/join (reduce f terms-interleaved (range spaces-needed)))))
@@ -37,7 +37,7 @@
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
   (let [f (fn [terms-so-far term]
-            (if (>= (apply + (map #(+ 1 (count %)) terms-so-far)) l)
+            (if (>= (apply + (map count terms-so-far)) l)
               (reduced terms-so-far)
               (conj terms-so-far term)))
         terms-that-fit (reduce f [(first ts)] (rest ts))
@@ -67,6 +67,20 @@
     (let [[line ts-rest] (arrange-tokens-line ts (first img))]
       (conj (arrange-tokens ts-rest (rest img)) line))))
 
+    
+(defn analyze-code [code]
+  (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
+        token-to-text (fn [token] (if (= (:type token) "Punctuator")
+                                    (str (:value token))
+                                    (str (:value token))))]
+    (println (map :value tokens))
+    (map :value tokens)))
+
+;; TODO: smarter whitespace handling -- we don't need that much whitespace
+(defn token-to-text [token]
+  (if (= (:type token) "Punctuator")
+   (str (:value token))
+   (str (:value token) " ")))
 
 ;; Tries hard to make piece of code look like img
 ;; code -- string
@@ -74,11 +88,9 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (map :value tokens)]
-    (comment apply str (interleave ts (repeat " ")))
+        ts (map token-to-text tokens)]
     (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
-    
 
 (let [code      "function skipComment() {
         var ch, start;
@@ -135,16 +147,20 @@
             }
         }
     }"
-      img       [[0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
+      img       [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
       width     (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
