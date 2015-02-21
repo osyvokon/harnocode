@@ -6,6 +6,12 @@
 
 (enable-console-print!)
 
+(defn to-clj-array [js-col]
+  (-> (clj->js [])
+      (.-slice)
+      (.call js-col)
+      (js->clj)))
+
 ;; define your app data so that it doesn't get over-written on reload
 
 (defonce app-state (atom {:text "Hello world!"}))
@@ -86,45 +92,44 @@
 (defn black-and-white [context canvas]
   [])
 
-;(defn onimageload [image canvas context]
-;  (set! (.-width canvas (.-width image)))
-;  (set! (.-height canvas (.-height image)))
-;  (.drawImage canvas image 0 0)
-;  (let [pixels (black-and-white context canvas)]
-;    (.log js/console pixels)))
-
-;(defn onreaderload [reader]
-;  (let [pixels-div dom/getElement "pixels"
-;        image (js/Image.)]
-;    (set! (.-src image (:result reader)))
-;    ;(set! (.-onload image onimageload))
-;    ;(set! (.-innerHTML pixels-div ""))
-;    )
-;  (.log js/console "onreaderload")
-;  )
-
-(defn handle-files [event]
-  {:pre [(not (empty? (.-files (.-target event))))]}
-  (let [canvas (dom/getElement "viewport")
-        a (.log js/console canvas)
-        context (.getContext canvas "2d")
-        b (.log js/console context)
-        f (nth (.-files (.-target event)) 0)
-        c (.log js/console f)
-        reader (js/FileReader.)]
-    (set! (.-onloadend reader) #())
-    (.readAsDataURL reader f))
-  (.log js/console "handle files")
+(defn on-image-load [event]
+  (let [image (.-target event)
+        canvas (dom/getElement "viewport")
+        context (.getContext canvas "2d")]
+    (set! (.-width canvas) (.-width image))
+    (set! (.-height canvas) (.-height image))
+    (.drawImage context image 0 0)
+    (let [pixels (black-and-white context canvas)]
+      (print pixels))
+    )
   )
 
+(defn on-reader-load [event]
+  (let [pixels-div (dom/getElement "pixels")
+        image (js/Image.)
+        src (.-result (.-target event))]
+    (events/listen image (.-LOAD events/EventType) on-image-load)
+    (set! (.-src image) src)
+    (set! (.-innerHTML pixels-div) "")
+    )
+  (print "onreaderload")
+  )
+
+(defn handle-files [event]
+  {:pre [(not (nil? (.-files (.-target event))))]}
+  (let [f (nth (to-clj-array (.-files (.-target event))) 0)
+        reader (js/FileReader.)]
+    (set! (.-onloadend reader) on-reader-load)
+    (.readAsDataURL reader f))
+  )
+
+(defn on-dom-loaded []
+  (let [file-upload (dom/getElement "fileInput")]
+    (when file-upload
+      (print file-upload)
+      (events/listen file-upload "change" handle-files)))
+  (print "domready"))
+
 (def w (dom/getWindow))
-(events/listen w
-               (.-DOMCONTENTLOADED events/EventType)
-               (fn [] (
-                        (let [file-upload (dom/getElement "fileInput")]
-                          (when file-upload
-                            (print file-upload)
-                            (events/listen file-upload "change" handle-files)))
-                        (print "domready")
-                        )))
+(events/listen w (.-DOMCONTENTLOADED events/EventType) on-dom-loaded)
 
