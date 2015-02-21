@@ -14,18 +14,15 @@
   (let [output-area (dom/getElement "output")]
     (when output-area (set! (.-value output-area) harnocode))))
 
-
-
-
 ;; Best try on filling "column" of l subsequent ones with one or more tokens
 (defn fill-column [ts l]
   [(first ts) (rest ts)])
 
 (defn fill-group [[result tokens] group]
-    (if (== (first group) 0)
-      [(string/join result (repeat (count group) "_")) tokens]
-      (let [[column rest-ts] (fill-column tokens (count group))]
-        [(string/join result column) rest-ts])))
+  (if (== (first group) 0)
+    [(string/join result (repeat (count group) "_")) tokens]
+    (let [[column rest-ts] (fill-column tokens (count group))]
+      [(string/join result column) rest-ts])))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)]
@@ -41,31 +38,31 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts     (map :value tokens)]
+        ts (map :value tokens)]
     (comment apply str (interleave ts (repeat " ")))
-    (string/join "\n" (arrange-tokens ts img))         ; img must be resized by now, no need in w
+    (string/join "\n" (arrange-tokens ts img))              ; img must be resized by now, no need in w
     ))
 
 
-(let [code      "var answer = 42;"
-      img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
-                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
-      width     (count (first img))
+(let [code "var answer = 42;"
+      img [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+           [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
+      width (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
 
 
 
 (fw/start {
-  :load-warninged-code true
-})
+           :load-warninged-code true
+           })
 
 ;document.getElementById('pixels').innerHTML = '';
 ;                                               var image = new Image();
@@ -100,25 +97,35 @@
 ;  (let [pixels-div dom/getElement "pixels"
 ;        image (js/Image.)]
 ;    (set! (.-src image (:result reader)))
-;    (set! (.-onload image onimageload))
-;    (set! (.-innerHTML pixels-div ""))))
+;    ;(set! (.-onload image onimageload))
+;    ;(set! (.-innerHTML pixels-div ""))
+;    )
+;  (.log js/console "onreaderload")
+;  )
 
-(defn handle-files [files]
-  {:pre [(not (empty? files))
-         (not (empty? (nth files 0)))]}
-  ;(let [canvas dom/getElement "viewport"
-  ;      a (.log js/console canvas)
-  ;      context (.getContext canvas "2d")
-  ;      b (.log js/console context)
-  ;      f (nth files 0)
-  ;      c(.log js/console f)
-  ;      reader (js/FileReader.)]
-  ;  (set! (.-onloadend reader) onreaderload)
-  ;  (.readAsDataURL reader f))
+(defn handle-files [event]
+  {:pre [(not (empty? (.-files (.-target event))))]}
+  (let [canvas (dom/getElement "viewport")
+        a (.log js/console canvas)
+        context (.getContext canvas "2d")
+        b (.log js/console context)
+        f (nth (.-files (.-target event)) 0)
+        c (.log js/console f)
+        reader (js/FileReader.)]
+    (set! (.-onloadend reader) #())
+    (.readAsDataURL reader f))
   (.log js/console "handle files")
   )
 
-(defn main []
-  (.log js/console "main")
-  (let [fileUpload (dom/getElement "fileInput")]
-    (events/listen fileUpload "change" handle-files)))
+(def window (dom/getWindow))
+(events/listen window "domready"
+               ;#(let [fileUpload (dom/getElement "fileInput")]
+               ;  (when fileUpload
+               ;    (events/listen fileUpload "change" handle-files))
+               ;  )
+               (fn [] (
+                       (.log js/console "domready")
+                       ))
+               )
+
+
