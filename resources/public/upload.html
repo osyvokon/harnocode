@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id="app">
+    <h2>Figwheel template</h2>
+    <p>Checkout your developer console.</p>
+</div>
+<script type="text/javascript">
+    function handleFiles(files) {
+        var canvas = document.getElementById('viewport'),
+                context = canvas.getContext('2d');
+        console.log(files);
+        if (files && files[0]) {
+            var f = files[0];
+            var reader = new FileReader();
+            // Closure to capture the file information.
+            reader.onloadend = function () {
+                var image = new Image();
+                image.src = reader.result;
+                image.onload = function() {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    context.drawImage(image, 0, 0);
+                }
+
+            };
+            reader.readAsDataURL(f); //reads the data as a URL
+        }
+    }
+</script>
+    <input multiple="false" type="file" id="input" onchange="handleFiles(this.files)">
+    <canvas id="viewport"></canvas>
+</body>
+</html>
