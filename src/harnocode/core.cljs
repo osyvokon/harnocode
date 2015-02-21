@@ -1,5 +1,6 @@
 (ns ^:figwheel-always harnocode.core
-    (:require [goog.dom :as dom]))
+    (:require [goog.dom :as dom]
+              [clojure.string :as string]))
 
 (enable-console-print!)
 
@@ -20,11 +21,32 @@
         ts     (map :value tokens)]
     (println tokens)
     (println "Tokens:" ts)
-    (apply str (interleave ts (repeat " ")))))
-  
+    (comment apply str (interleave ts (repeat " ")))
+    (arrange-tokens ts img)         ; img must be resized by now, no need in w
+    ))
+
+(defn arrange-tokens [ts img]
+  (arrange-tokens-line ts (first img)))
+
+(defn arrange-tokens-line [ts line]
+  (let [groups (partition-by identity line)]
+    (reductions
+      (fn [group tokens]
+        (string/join (if (== (first group) 0)
+                       (repeat (count group) " ")
+                       (repeat (count group) " "))))
+      ts groups)))
 
 (let [code      "var answer = 42;"
-      img       ()
-      width     80
+      img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
+                 [0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]]
+      width     (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
