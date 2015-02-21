@@ -14,10 +14,6 @@
       (.call js-col)
       (js->clj)))
 
-;; define your app data so that it doesn't get over-written on reload
-
-(defonce app-state (atom {:text "Hello world!"}))
-
 (defn show-harnocode! [harnocode]
   (let [output-area (dom/getElement "output")]
     (when output-area (set! (.-value output-area) harnocode))))
@@ -98,7 +94,7 @@
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts (map token-to-text tokens)]
-    (string/join "\n" (reverse (arrange-tokens ts (invert-image img))))              ; img must be resized by now, no need in w
+    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
 
 (let [code      "function skipComment() {
@@ -179,6 +175,36 @@
 (fw/start {
            :load-warninged-code true
            })
+
+(defn go-click-listener [event]
+ (let    [
+      code       (.-value (dom/getElement "output"))
+      img       [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
+      width     (count (first img))
+      harnocode (harnify code img width)]
+  (println "clicked")
+  (show-harnocode! harnocode)))
+
+(defonce setup-stuff
+  (do
+    (events/listen (dom/getElement "go") "click" go-click-listener)))
 
 (defn get-pixels [context canvas]
   (let [w (.-width canvas)
