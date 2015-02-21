@@ -223,8 +223,7 @@
 
 (defn array-to-arrays [src w acc]
   (let [[h t] (split-at w src)]
-    (if (empty? t) h (array-to-arrays t w (assoc acc (count acc) h)))
-  ))
+    (if (empty? h) acc (array-to-arrays t w (conj acc h)))))
 
 (defn black-and-white [context canvas]
   (let [pixels (get-pixels context canvas)
