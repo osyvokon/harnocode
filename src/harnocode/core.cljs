@@ -17,11 +17,16 @@
 (defn fill-column [ts l]
   [(first ts) (rest ts)])
 
-(defn fill-group [[result tokens] group]
-    (if (== (first group) 0)
-      [(conj result (string/join (repeat (count group) "_"))) tokens]
+(defmulti fill-group
+  (fn [[result tokens] group]
+    (first group)))
+
+(defmethod fill-group 0 [[result tokens] group]
+  [(conj result (string/join (repeat (count group) "_"))) tokens])
+
+(defmethod fill-group 1 [[result tokens] group]
       (let [[column rest-ts] (fill-column tokens (count group))]
-        [(conj result column) rest-ts])))
+        [(conj result column) rest-ts]))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)]
