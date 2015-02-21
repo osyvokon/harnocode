@@ -1,6 +1,7 @@
 (ns ^:figwheel-always harnocode.core
   (:require [goog.dom :as dom]
             [goog.events :as events]
+            [goog.object :as obj]
             [clojure.string :as string]
             [figwheel.client :as fw]))
 
@@ -171,27 +172,25 @@
            :load-warninged-code true
            })
 
-;document.getElementById('pixels').innerHTML = '';
-;                                               var image = new Image();
-;image.src = reader.result;
-;image.onload = function() {
-;                           canvas.width = image.width;
-;                                          canvas.height = image.height;
-;                           context.drawImage(image, 0, 0);
-;                           var pixels = blackAndWhite(context, canvas);
-;                                                     var s = '';
-;                                                              for (var i = 0; i < pixels.length; i++) {
-;                                                                       var row = pixels[i];
-;                                                                       for (var j = 0; j < row.length; j++) {
-;                                                                                var symbol = row[j];
-;                                                                                s += (symbol == 1 ? symbol: "&nbsp;&nbsp;");
-;                           }
-;s += '<br/>';
-;
-;document.getElementById('pixels').innerHTML = s;
+(defn get-pixels [context canvas]
+  (let [w (.-width canvas)
+        h (.-height canvas)
+        img-data (.getImageData context 0 0 w h)
+        pixels (.-data img-data)
+        result (atom [])]
+    (obj/forEach pixels
+                 (fn [val]
+                   (swap! result conj val)))
+    @result))
 
 (defn black-and-white [context canvas]
-  [])
+  (let [pixels (get-pixels context canvas)
+        greyscale (fn[r g b alpha](
+                             (let [grey (+ (* r 0.3) (* g 0.59) (* b 0.11))]
+                               (if (> grey (/ 255 2)) 255 0))))]
+    ;; TODO
+    (reduce greyscale [] pixels)))
+
 
 (defn on-image-load [event]
   (let [image (.-target event)
