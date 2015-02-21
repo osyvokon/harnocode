@@ -1,6 +1,7 @@
 (ns ^:figwheel-always harnocode.core
     (:require [goog.dom :as dom]
-              [clojure.string :as string]))
+              [clojure.string :as string]
+              [figwheel.client :as fw]))
 
 (enable-console-print!)
 
@@ -19,23 +20,21 @@
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts     (map :value tokens)]
-    (println tokens)
-    (println "Tokens:" ts)
     (comment apply str (interleave ts (repeat " ")))
-    (arrange-tokens ts img)         ; img must be resized by now, no need in w
+    (string/join "\n" (arrange-tokens ts img))         ; img must be resized by now, no need in w
     ))
 
 (defn arrange-tokens [ts img]
-  (arrange-tokens-line ts (first img)))
+  (map #(arrange-tokens-line ts %) img))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)]
-    (reductions
-      (fn [group tokens]
+    (identity (reductions
+      (fn [tokens group]
         (string/join (if (== (first group) 0)
-                       (repeat (count group) " ")
-                       (repeat (count group) " "))))
-      ts groups)))
+                       (repeat (count group) "0")
+                       (repeat (count group) "1"))))
+       "" groups))))
 
 (let [code      "var answer = 42;"
       img       [[0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1]
@@ -50,3 +49,9 @@
       width     (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
+
+
+
+(fw/start {
+  :load-warninged-code true
+})
