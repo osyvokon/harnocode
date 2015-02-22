@@ -278,7 +278,7 @@
       )
     ))
 
-(defonce max-image-dimension 300)
+(defonce max-image-dimension 224)
 
 (defn on-image-load [event]
   (let [image (.-target event)
@@ -312,7 +312,7 @@
   )
 
 (defn handle-files [event]
-  {:pre [(not (nil? (.-files (.-target event))))]}
+  {:pre [(> (alength (.-files (.-target event))) 0)]}
   (let [f (nth (to-clj-array (.-files (.-target event))) 0)
         reader (js/FileReader.)]
     (set! (.-onloadend reader) on-reader-load)
