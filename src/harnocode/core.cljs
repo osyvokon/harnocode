@@ -89,7 +89,8 @@
         line (concat (repeat a 0) (repeat (* 3 a) 1) (repeat a 0) (repeat (* 3 a) 1))
         fake-img (take (/ (count ts) 5) (cycle [line]))       ; crap, re-do!!
         [result _] (arrange-tokens ts fake-img [])]
-    (concat (repeat 20 "\\\n") result)))
+    (if (empty? ts) []
+     (concat (repeat 20 "\\\n") result))))
 
 
 (defn analyze-code [code]
