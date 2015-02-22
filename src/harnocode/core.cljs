@@ -89,7 +89,7 @@
         line (concat (repeat a 0) (repeat (* 3 a) 1) (repeat a 0) (repeat (* 3 a) 1))
         fake-img (take (/ (count ts) 5) (cycle [line]))       ; crap, re-do!!
         [result _] (arrange-tokens ts fake-img [])]
-    (concat (repeat 20 "\n") result)))
+    (concat (repeat 20 "\\\n") result)))
 
 
 (defn analyze-code [code]
@@ -131,24 +131,44 @@
                       (split-string-literal token l [])))]
   (mapcat split-token tokens)))
 
+(defn add-eval-tokens [tokens]
+  (concat [{:type "Identifier" :value "eval"}
+           {:type "Punctuator" :value "("}
+           {:type "Punctuator" :value "'"}]
+          tokens
+          [{:type "Punctuator" :value "'"}
+           {:type "Punctuator" :value ")"}
+           {:type "Punctuator" :value ";"}]))
+
+(defn unescape-eval [escaped]
+  (string/reverse
+    (string/replace-first
+      (string/reverse (string/replace-first escaped "\\'" "'"))
+      "'\\" "'")))
+
+
 ;; Tries hard to make piece of code look like img
 ;; code -- string
 ;; img  -- 2d matrix of 0's and 1's
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
-  (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
+  (let [tokens (add-eval-tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true))
         ts (tokens-to-text (split-string-literals tokens 5) [])
         [arranged ts-unused] (arrange-tokens ts img [])
         unused               (arrange-unused ts-unused 160)
-        result (concat arranged unused)
-        ]
-    (string/join "\n" result)              ; img must be resized by now, no need in w
-    ))
+        harnocode            (string/join "\\\n" (concat arranged unused))
+        escaped              (string/replace (string/replace harnocode #"\\(.)" "\\\\$1") "'" "\\'")
+        result               (unescape-eval escaped)]
+    result))
 
 ;; TODO: add unused tokens
 
-(let [code      "function skipComment() {
-        var ch, start = 'hello world! this is a long line';
+(let [code      "
+
+
+
+       function skipComment() {
+        var ch, start = 'hello world! \\n this is a long line';
 
         start = (index === 0);
         while (index < length) {
