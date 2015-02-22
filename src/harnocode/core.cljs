@@ -90,6 +90,24 @@
 (defn invert-image [img]
   (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
    (map invert-row img)))
+   
+;; TODO: break long string literals into several of form "abc" + "def"
+(comment defn split-string-literal [token l result]
+ (let [[h t] (split-at l (:value token))]
+  (if (empty? h) result
+   (recur
+    {:value t :type "String"}
+    (concat result
+     {:value h :type "String"}
+     {:value "+" : type "Punctuator"})))))
+
+(defn split-string-literals [tokens l]
+  (let [split-token (fn [token]
+                     (if (not= (:type token) "String")
+                      [token]
+                      (split-string-literal token l [])))]
+  (comment mapcat split-token tokens)
+  tokens))
 
 ;; Tries hard to make piece of code look like img
 ;; code -- string
@@ -97,12 +115,12 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (tokens-to-text tokens [])]
+        ts (tokens-to-text (split-string-literals tokens 4) [])]
     (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
 
 (let [code      "function skipComment() {
-        var ch, start;
+        var ch, start = 'hello world! this is a long line';
 
         start = (index === 0);
         while (index < length) {
