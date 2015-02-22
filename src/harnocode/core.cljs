@@ -106,18 +106,17 @@
   (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
    (map invert-row img)))
    
-;; TODO: break long string literals into several of form "abc" + "def"
+;; TODO: handle escaped symbols
 (defn split-string-literal [token l result]
- (let [[[quote & hrest :as h] t] (split-at l (:value token))]
-  (println h)
-  (if (empty? hrest)
-   (butlast result)
-   (recur
-    {:value (str quote (:value t)) :type "String"}
-    l
-    (conj result
-     {:value (str h quote) :type "String"}
-     {:value "+" :type "Punctuator"})))))
+ (let [[quote & value-rest] (:value token)
+       text   (string/join (butlast value-rest))
+       chunks (re-seq #"..?.?.?" text)
+       plus   {:value "+", :type "Punctuator"}
+       quoted-chunks (map #(str quote % quote) chunks)
+       quoted-tokens (map (fn [t] {:value t :type "String"}) quoted-chunks)
+       interleaved (butlast (interleave quoted-tokens (cycle [plus])))]
+    (println plus)
+    interleaved))
 
 (defn split-string-literals [tokens l]
   (let [split-token (fn [token]
