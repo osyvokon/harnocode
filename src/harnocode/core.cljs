@@ -50,7 +50,7 @@
 (defn fill-column [ts l]
   (let [f (fn [terms-so-far term]
             (if (>= (apply + (map count terms-so-far)) l)
-              (reduced terms-so-far)
+              (reduced (if (> (count terms-so-far) 1) (butlast terms-so-far) terms-so-far))
               (conj terms-so-far term)))
         terms-that-fit (reduce f [(first ts)] (rest ts))
         ts-rest (drop (count terms-that-fit) ts)]
