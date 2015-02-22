@@ -77,10 +77,19 @@
         [this-line-tokens ts-rest _] (reduce fill-group [[] ts 0] groups)]
     [(string/join this-line-tokens) ts-rest]))
 
+;; arrange tokens to form ascii-art
+;; return [result remained-tokens] tuple
 (defn arrange-tokens [ts img result]
-  (if (or (empty? ts) (empty? img)) result
+  (if (or (empty? ts) (empty? img)) [(identity result) ts]
     (let [[line ts-rest] (arrange-tokens-line ts (first img))]
       (recur ts-rest (rest img) (conj result line)))))
+
+(defn arrange-unused [ts width]
+  (let [a    (/ width 7)
+        line (concat (repeat a 0) (repeat (* 3 a) 1) (repeat a 0) (repeat (* 3 a) 1))
+        fake-img (take (/ (count ts) 5) (cycle [line]))       ; crap, re-do!!
+        [result _] (arrange-tokens ts fake-img [])]
+    (concat (repeat 20 "\n") result)))
 
 
 (defn analyze-code [code]
@@ -128,8 +137,13 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (tokens-to-text (split-string-literals tokens 5) [])]
-    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
+        ts (tokens-to-text (split-string-literals tokens 5) [])
+        [arranged ts-unused] (arrange-tokens ts img [])
+        unused               (arrange-unused ts-unused 160)
+        result (concat arranged unused)
+        ]
+    (println unused)
+    (string/join "\n" result)              ; img must be resized by now, no need in w
     ))
 
 ;; TODO: add unused tokens
