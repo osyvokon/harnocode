@@ -224,9 +224,13 @@
   (redraw!))
 
 (defonce setup-stuff
-         (do
-           (let [button (dom/getElement "go")]
-             (when button (events/listen button "click" go-click-listener)))))
+ (do
+  (let [button (dom/getElement "go")]
+   (when button (events/listen button "click" go-click-listener)))
+  (events/listen (dom/getElement "inverse") "click"
+    (fn [event]
+     (swap! img invert-image)
+     (redraw!)))))
 
 (defn get-pixels [context canvas]
   (let [w (.-width canvas)

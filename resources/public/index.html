@@ -7,14 +7,17 @@
   <body>
     <div id="app">
       <h2>Гарнокод</h2>
-        <p>Оберите зображення:</p>
+        <p>Завантажити зображення:</p>
         <input multiple="false" type="file" id="fileInput">
         <canvas id="viewport"></canvas>
-        <div id="pixels" style="font-family: 'Courier New', Monospace;font-size: small"></div>
+        <div id="pixels" style="font-family: Monospace, 'Courier New';font-size: small"></div>
 
-      <p>Вставте свій г(ов|ар)но код сюди:</p>
-      <div><button id="go">Причепурити</button></div>
-      <textarea id="output" autofocus style="font-family:monospace;box-sizing: border-box;  width:100%; height:80vh"></textarea>
+      <p>Вставте свій г(ов|ар)нокод сюди:</p>
+      <div>
+        <button id="go">Причепурити</button>
+        <button id="inverse">День/ніч</button>
+      </div>
+      <textarea id="output" rows=1000 autofocus style="background-color: #eee; font-family:monospace;box-sizing: border-box;  width:100%; font-size: small;"></textarea>
     </div>
 
 
