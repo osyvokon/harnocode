@@ -142,7 +142,6 @@
         unused               (arrange-unused ts-unused 160)
         result (concat arranged unused)
         ]
-    (println unused)
     (string/join "\n" result)              ; img must be resized by now, no need in w
     ))
 
