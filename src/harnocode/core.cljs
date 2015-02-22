@@ -107,22 +107,24 @@
    (map invert-row img)))
    
 ;; TODO: break long string literals into several of form "abc" + "def"
-(comment defn split-string-literal [token l result]
- (let [[h t] (split-at l (:value token))]
-  (if (empty? h) result
+(defn split-string-literal [token l result]
+ (let [[[quote & hrest :as h] t] (split-at l (:value token))]
+  (println h)
+  (if (empty? hrest)
+   (butlast result)
    (recur
-    {:value t :type "String"}
-    (concat result
-     {:value h :type "String"}
+    {:value (str quote (:value t)) :type "String"}
+    l
+    (conj result
+     {:value (str h quote) :type "String"}
      {:value "+" :type "Punctuator"})))))
 
 (defn split-string-literals [tokens l]
   (let [split-token (fn [token]
                      (if (not= (:type token) "String")
                       [token]
-                      (comment split-string-literal token l [])))]
-  (comment mapcat split-token tokens)
-  tokens))
+                      (split-string-literal token l [])))]
+  (mapcat split-token tokens)))
 
 ;; Tries hard to make piece of code look like img
 ;; code -- string
@@ -130,7 +132,7 @@
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (tokens-to-text (split-string-literals tokens 4) [])]
+        ts (tokens-to-text (split-string-literals tokens 5) [])]
     (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
 
@@ -189,20 +191,7 @@
             }
         }
     }"
-      img [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
+      img @img
       width (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
