@@ -5,8 +5,23 @@
             [clojure.string :as string]
             [figwheel.client :as fw]))
 
-;; TODO: make spacing more even
 (enable-console-print!)
+
+(defonce img
+    (atom [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]))
 
 (defn to-clj-array [js-col]
   (-> (clj->js [])
@@ -105,7 +120,7 @@
   (let [split-token (fn [token]
                      (if (not= (:type token) "String")
                       [token]
-                      (split-string-literal token l [])))]
+                      (comment split-string-literal token l [])))]
   (comment mapcat split-token tokens)
   tokens))
 
@@ -198,31 +213,15 @@
            :load-warninged-code true
            })
 
-(defn go-click-listener [event]
-  (let [
-        code (.-value (dom/getElement "output"))
-        img [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
-        width (count (first img))
-        harnocode (harnify code img width)]
+(defn redraw! []
+  (let [code (.-value (dom/getElement "output"))
+        width (count (first @img))
+        harnocode (harnify code @img width)]
     (println "clicked")
     (show-harnocode! harnocode)))
+
+(defn go-click-listener [event]
+  (redraw!))
 
 (defonce setup-stuff
          (do
@@ -279,10 +278,10 @@
     (set! (.-height canvas) (.-height image))
     (.drawImage context image 0 0)
     (let [pixels (black-and-white context canvas)]
-      (print pixels)
-      (display-image-array pixels)
-      )
-    ))
+      (comment print pixels)
+      (comment display-image-array pixels)
+      (reset! img pixels)
+      (redraw!))))
 
 (defn on-reader-load [event]
   (let [pixels-div (dom/getElement "pixels")
