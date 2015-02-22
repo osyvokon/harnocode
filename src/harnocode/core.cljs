@@ -19,14 +19,14 @@
     (when output-area (set! (.-value output-area) harnocode))))
 
 ;; Ugly, but have no time to find a better way
-(defn insert [v pos item] 
+(defn insert [v pos item]
   (let [[h t] (split-at pos v)]
     (vec (concat h [item] t))))
 
 ;; Insert spaces between terms so they occupy exactly l chars
 ;; TODO: make spacing more even
 (defn insert-spaces [terms l]
-  (let [terms-interleaved terms ;; TODO: need better interleave that would work as string.join (without last space)
+  (let [terms-interleaved terms                             ;; TODO: need better interleave that would work as string.join (without last space)
         spaces-needed (- l (apply + (map count terms-interleaved)))
         f (fn [terms _] (insert terms (inc (rand-int (- (count terms) 1))) " "))]
     (string/join (reduce f terms-interleaved (range spaces-needed)))))
@@ -39,23 +39,23 @@
               (conj terms-so-far term)))
         terms-that-fit (reduce f [(first ts)] (rest ts))
         ts-rest (drop (count terms-that-fit) ts)]
-   [(insert-spaces terms-that-fit l) ts-rest]))
+    [(insert-spaces terms-that-fit l) ts-rest]))
 
 
 (defmulti fill-group
-  (fn [[result tokens] group]
-    (first group)))
+          (fn [[result tokens] group]
+            (first group)))
 
 ;; shorten defined for 0 group only: how much chars "eaten" by preceding 1-groups
 (defmethod fill-group 0 [[result tokens shorten] group]
   (let [l (max 1 (- (count group) shorten))]
-   [(conj result (string/join (repeat l " "))) tokens 0]))
+    [(conj result (string/join (repeat l " "))) tokens 0]))
 
 (defmethod fill-group 1 [[result tokens _] group]
-      (let [l                (count group)
-            [column rest-ts] (fill-column tokens l)
-            extra-len (- (count column) l)]
-        [(conj result column) rest-ts extra-len]))
+  (let [l (count group)
+        [column rest-ts] (fill-column tokens l)
+        extra-len (- (count column) l)]
+    [(conj result column) rest-ts extra-len]))
 
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)
@@ -68,7 +68,7 @@
     (let [[line ts-rest] (arrange-tokens-line ts (first img))]
       (conj (arrange-tokens ts-rest (rest img)) line))))
 
-    
+
 (defn analyze-code [code]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         token-to-text (fn [token] (if (= (:type token) "Punctuator")
@@ -80,16 +80,16 @@
 ;; TODO
 (defn tokens-to-text [[t1 t2 & tokens] result]
   (if (nil? t1) result
-    (if (nil? t2) (conj result (:value t2))
-      (let [t1-punct? (= (:type t1) "Punctuator")
-            t2-punct? (= (:type t2) "Punctuator")
-            need-space (and (not t1-punct?) (not t2-punct?))
-            t1-text (str (:value t1) (if need-space " " ""))]
-        (recur (conj tokens t2) (conj result t1-text))))))
+                (if (nil? t2) (conj result (:value t2))
+                              (let [t1-punct? (= (:type t1) "Punctuator")
+                                    t2-punct? (= (:type t2) "Punctuator")
+                                    need-space (and (not t1-punct?) (not t2-punct?))
+                                    t1-text (str (:value t1) (if need-space " " ""))]
+                                (recur (conj tokens t2) (conj result t1-text))))))
 
 (defn invert-image [img]
   (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
-   (map invert-row img)))
+    (map invert-row img)))
 
 ;; Tries hard to make piece of code look like img
 ;; code -- string
@@ -98,10 +98,10 @@
 (defn harnify [code img w]
   (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
         ts (tokens-to-text tokens [])]
-    (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
+    (string/join "\n" (reverse (arrange-tokens ts img)))    ; img must be resized by now, no need in w
     ))
 
-(let [code      "function skipComment() {
+(let [code "function skipComment() {
         var ch, start;
 
         start = (index === 0);
@@ -156,21 +156,21 @@
             }
         }
     }"
-      img       [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
-      width     (count (first img))
+      img [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+           [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
+      width (count (first img))
       harnocode (harnify code img width)]
   (show-harnocode! harnocode))
 
@@ -181,35 +181,35 @@
            })
 
 (defn go-click-listener [event]
- (let    [
-      code       (.-value (dom/getElement "output"))
-      img       [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
-                 [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
-      width     (count (first img))
-      harnocode (harnify code img width)]
-  (println "clicked")
-  (show-harnocode! harnocode)))
+  (let [
+        code (.-value (dom/getElement "output"))
+        img [[0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]
+             [0 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1]]
+        width (count (first img))
+        harnocode (harnify code img width)]
+    (println "clicked")
+    (show-harnocode! harnocode)))
 
 (defonce setup-stuff
-  (do
-    (let [button (dom/getElement "go")]
-      (when button (events/listen button "click" go-click-listener)))))
+         (do
+           (let [button (dom/getElement "go")]
+             (when button (events/listen button "click" go-click-listener)))))
 
 (defn get-pixels [context canvas]
   (let [w (.-width canvas)
@@ -228,15 +228,30 @@
 
 (defn black-and-white [context canvas]
   (let [pixels (get-pixels context canvas)
-        greyscale (fn[r g b alpha]
-            (let [grey (+ (* r 0.3) (* g 0.59) (* b 0.11))]
-             (if (> grey (/ 255 2)) 1 0)))
-        f  (fn [[r g b a & rest-pixels] result]
-             (if (nil? a)
+        greyscale (fn [r g b alpha]
+                    (let [grey (+ (* r 0.3) (* g 0.59) (* b 0.11))]
+                      (if (> grey (/ 255 2)) 1 0)))
+        f (fn [[r g b a & rest-pixels] result]
+            (if (nil? a)
               result
               (recur rest-pixels (conj result (greyscale r g b a)))))]
     (array-to-arrays (f pixels []) (.-width canvas) [])))
 
+(defn pixels-to-string [px acc]
+  (if (empty? px)
+    (string/join "<br/>" acc)
+    (let [h (first px)
+          t (rest px)]
+      (recur t (conj acc (string/join "&nbsp;" h)))
+      )))
+
+(defn display-image-array [pixels]
+  (let [pixels-div (dom/getElement "pixels")]
+    (when pixels-div
+      (let [s (pixels-to-string pixels [])]
+        (set! (.-innerHTML pixels-div) s))
+      )
+    ))
 
 (defn on-image-load [event]
   (let [image (.-target event)
@@ -247,9 +262,9 @@
     (.drawImage context image 0 0)
     (let [pixels (black-and-white context canvas)]
       (print pixels)
-      (print (alength pixels)))
-    )
-  )
+      (display-image-array pixels)
+      )
+    ))
 
 (defn on-reader-load [event]
   (let [pixels-div (dom/getElement "pixels")
