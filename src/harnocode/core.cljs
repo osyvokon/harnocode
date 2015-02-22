@@ -280,20 +280,20 @@
 
 (defonce max-image-dimension 224)
 
+  ;w (.-width image)
+  ;h (.-height image)
+  ;ratio (if (> w max-image-dimension) (/ w max-image-dimension) 1)
+  ;new-w (/ w ratio)
+  ;new-h (* (/ h w) new-w)
+
 (defn on-image-load [event]
   (let [image (.-target event)
         canvas (dom/getElement "viewport")
         context (.getContext canvas "2d")
-        w (.-width image)
-        h (.-height image)
-        ratio (if (> w max-image-dimension) (/ w max-image-dimension) 1)
-        new-w (/ w ratio)
-        new-h (* (/ h w) new-w)]
-    (set! (.-width canvas) new-w)
-    (set! (.-height canvas) new-h)
-    (print (str "new width: " new-w ", was: " w))
-    (print (str "new height: " new-h ", was: " h))
-    (.drawImage context image 0 0 w h 0 0 new-w new-h)
+        ]
+    (set! (.-width canvas) (.-width image))
+    (set! (.-height canvas) (.-height image))
+    (.drawImage context image 0 0)
     (let [pixels (rescale-width (black-and-white context canvas))]
       (comment print pixels)
       (comment display-image-array pixels)
