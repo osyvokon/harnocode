@@ -77,11 +77,10 @@
         [this-line-tokens ts-rest _] (reduce fill-group [[] ts 0] groups)]
     [(string/join this-line-tokens) ts-rest]))
 
-(defn arrange-tokens [ts img]
-  (if (empty? img)
-    []
+(defn arrange-tokens [ts img result]
+  (if (or (empty? ts) (empty? img)) result
     (let [[line ts-rest] (arrange-tokens-line ts (first img))]
-      (conj (arrange-tokens ts-rest (rest img)) line))))
+      (recur ts-rest (rest img) (conj result line)))))
 
 
 (defn analyze-code [code]
@@ -89,7 +88,6 @@
         token-to-text (fn [token] (if (= (:type token) "Punctuator")
                                     (str (:value token))
                                     (str (:value token))))]
-    (println (map :value tokens))
     (map :value tokens)))
 
 ;; TODO
@@ -115,7 +113,6 @@
        quoted-chunks (map #(str quote % quote) chunks)
        quoted-tokens (map (fn [t] {:value t :type "String"}) quoted-chunks)
        interleaved (butlast (interleave quoted-tokens (cycle [plus])))]
-    (println plus)
     interleaved))
 
 (defn split-string-literals [tokens l]
