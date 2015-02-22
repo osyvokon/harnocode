@@ -135,6 +135,8 @@
     (string/join "\n" (reverse (arrange-tokens ts img)))              ; img must be resized by now, no need in w
     ))
 
+;; TODO: add unused tokens
+
 (let [code      "function skipComment() {
         var ch, start = 'hello world! this is a long line';
 
@@ -235,6 +237,10 @@
   (let [[h t] (split-at w src)]
     (if (empty? h) acc (recur t w (conj acc h)))))
 
+(defn rescale-width [img]
+  (let [rescale-line (fn [line] (mapcat #(repeat 2 %) line))]
+    (map rescale-line img)))
+
 (defn black-and-white [context canvas]
   (let [pixels (get-pixels context canvas)
         greyscale (fn [r g b alpha]
@@ -269,7 +275,7 @@
     (set! (.-width canvas) (.-width image))
     (set! (.-height canvas) (.-height image))
     (.drawImage context image 0 0)
-    (let [pixels (black-and-white context canvas)]
+    (let [pixels (rescale-width (black-and-white context canvas))]
       (comment print pixels)
       (comment display-image-array pixels)
       (reset! img pixels)
