@@ -91,28 +91,6 @@
         [result _] (arrange-tokens ts fake-img [])]
     (concat (repeat 20 "\n") result)))
 
-
-(defn analyze-code [code]
-  (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        token-to-text (fn [token] (if (= (:type token) "Punctuator")
-                                    (str (:value token))
-                                    (str (:value token))))]
-    (map :value tokens)))
-
-;; TODO
-(defn tokens-to-text [[t1 t2 & tokens] result]
-  (if (nil? t1) result
-                (if (nil? t2) (conj result (:value t2))
-                              (let [t1-punct? (= (:type t1) "Punctuator")
-                                    t2-punct? (= (:type t2) "Punctuator")
-                                    need-space (and (not t1-punct?) (not t2-punct?))
-                                    t1-text (str (:value t1) (if need-space " " ""))]
-                                (recur (conj tokens t2) (conj result t1-text))))))
-
-(defn invert-image [img]
-  (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
-   (map invert-row img)))
-   
 ;; TODO: handle escaped symbols
 (defn split-string-literal [token l result]
  (let [[quote & value-rest] (:value token)
@@ -131,19 +109,39 @@
                       (split-string-literal token l [])))]
   (mapcat split-token tokens)))
 
+;; TODO
+(defn tokens-to-text [[t1 t2 & tokens] result]
+  (if (nil? t1) result
+                (if (nil? t2) (conj result (:value t2))
+                              (let [t1-punct? (= (:type t1) "Punctuator")
+                                    t2-punct? (= (:type t2) "Punctuator")
+                                    need-space (and (not t1-punct?) (not t2-punct?))
+                                    t1-text (str (:value t1) (if need-space " " ""))]
+                                (recur (conj tokens t2) (conj result t1-text))))))
+
+(defn analyze-code [code]
+  (let [ast (js/esprima.parse code)
+        regenerated (js/escodegen.generate ast)
+        tokens (js->clj (js/esprima.tokenize regenerated) :keywordize-keys true)
+        token-to-text (fn [token] (if (= (:type token) "Punctuator")
+                                    (str (:value token))
+                                    (str (:value token))))]
+    (tokens-to-text (split-string-literals tokens 5) [])))
+
+(defn invert-image [img]
+  (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
+   (map invert-row img)))
+   
 ;; Tries hard to make piece of code look like img
 ;; code -- string
 ;; img  -- 2d matrix of 0's and 1's
 ;; w    -- int, width of output, in chars
 (defn harnify [code img w]
-  (let [tokens (js->clj (js/esprima.tokenize code) :keywordize-keys true)
-        ts (tokens-to-text (split-string-literals tokens 5) [])
+  (let [ts (analyze-code code)
         [arranged ts-unused] (arrange-tokens ts img [])
         unused               (arrange-unused ts-unused 160)
-        result (concat arranged unused)
-        ]
-    (string/join "\n" result)              ; img must be resized by now, no need in w
-    ))
+        result (concat arranged unused)]
+    (string/join "\n" result)))              ; img must be resized by now, no need in w
 
 ;; TODO: add unused tokens
 
