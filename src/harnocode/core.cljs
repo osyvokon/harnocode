@@ -101,8 +101,8 @@
        quoted-chunks (map #(str quote % quote) chunks)
        quoted-tokens (map (fn [t] {:value t :type "String"}) quoted-chunks)
        interleaved (butlast (interleave quoted-tokens (cycle [plus])))]
-    ;[token]   ;  == do nothing
-    interleaved
+    [token]   ;  == do nothing
+    ;interleaved
     ))
 
 (defn split-string-literals [tokens l]
@@ -118,15 +118,22 @@
     (nil? t1) result
     (nil? t2) (conj result (:value t1))
     :else     (let [not-punct? #(not= (:type %) "Punctuator")
+                    tok-line   #(get-in % [:loc :end :line])
+                    same-line? #(= (tok-line %1) (tok-line %2))
+
                     need-space (and (not-punct? t1) (not-punct? t2))
-                    t1-text    (str (:value t1) (if need-space " " ""))]
-              (recur (conj tokens t2) (conj result t1-text)))))
+                    glue-toks  (and (= (:value t2) "++") (same-line? t1 t2))]
+              (cond
+                glue-toks  (recur tokens           (conj result (str (:value t1) (:value t2))))
+                need-space (recur (conj tokens t2) (conj result (str (:value t1) " ")))
+                :else      (recur (conj tokens t2) (conj result (str (:value t1))))))))
 
 (defn analyze-code [code]
   (let [ast (js/esprima.parse code)
         regenerated (js/escodegen.generate ast)
-        tokens (js->clj (js/esprima.tokenize regenerated) :keywordize-keys true)]
-    (tokens-to-text (split-string-literals tokens 5) [])))
+        tokens (js->clj (js/esprima.tokenize regenerated (clj->js {:loc true})) :keywordize-keys true)]
+    (tokens-to-text tokens [])))
+    ;(tokens-to-text (split-string-literals tokens 5) [])))
 
 (defn invert-image [img]
   (let [invert-row (fn [row] (map #(if (= % 0) 1 0) row))]
