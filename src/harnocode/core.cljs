@@ -52,7 +52,7 @@
             (if (>= (apply + (map count terms-so-far)) l)
               (reduced (if (> (count terms-so-far) 1) (butlast terms-so-far) terms-so-far))
               (conj terms-so-far term)))
-        terms-that-fit (reduce f [(first ts)] (rest ts))
+        terms-that-fit (reduce f [] ts)
         ts-rest (drop (count terms-that-fit) ts)]
     [(insert-spaces terms-that-fit l) ts-rest]))
 
@@ -75,6 +75,7 @@
 (defn arrange-tokens-line [ts line]
   (let [groups (partition-by identity line)
         [this-line-tokens ts-rest _] (reduce fill-group [[] ts 0] groups)]
+    ;(println "Line: " (string/join this-line-tokens) "Rest:" ts-rest)
     [(string/join this-line-tokens) ts-rest]))
 
 ;; arrange tokens to form ascii-art
@@ -111,21 +112,18 @@
 
 ;; TODO
 (defn tokens-to-text [[t1 t2 & tokens] result]
-  (if (nil? t1) result
-                (if (nil? t2) (conj result (:value t2))
-                              (let [t1-punct? (= (:type t1) "Punctuator")
-                                    t2-punct? (= (:type t2) "Punctuator")
-                                    need-space (and (not t1-punct?) (not t2-punct?))
-                                    t1-text (str (:value t1) (if need-space " " ""))]
-                                (recur (conj tokens t2) (conj result t1-text))))))
+  (cond
+    (nil? t1) result
+    (nil? t2) (conj result (:value t1))
+    :else     (let [not-punct? #(not= (:type %) "Punctuator")
+                    need-space (and (not-punct? t1) (not-punct? t2))
+                    t1-text    (str (:value t1) (if need-space " " ""))]
+              (recur (conj tokens t2) (conj result t1-text)))))
 
 (defn analyze-code [code]
   (let [ast (js/esprima.parse code)
         regenerated (js/escodegen.generate ast)
-        tokens (js->clj (js/esprima.tokenize regenerated) :keywordize-keys true)
-        token-to-text (fn [token] (if (= (:type token) "Punctuator")
-                                    (str (:value token))
-                                    (str (:value token))))]
+        tokens (js->clj (js/esprima.tokenize regenerated) :keywordize-keys true)]
     (tokens-to-text (split-string-literals tokens 5) [])))
 
 (defn invert-image [img]
@@ -158,7 +156,8 @@
 
 ;; TODO: add unused tokens
 
-(let [code      "function skipComment() {
+(let [code      "var a = 42;\nvar b = 43;"
+      code2     "function skipComment() {
         var ch, start = 'hello world! this is a long line';
 
         start = (index === 0);
@@ -230,7 +229,8 @@
         width (count (first @img))
         harnocode (harnify code @img width)]
     (println "clicked")
-    (show-harnocode! harnocode)))
+    (show-harnocode! harnocode)
+    (validate code img width)))
 
 (defn go-click-listener [event]
   (redraw!))
