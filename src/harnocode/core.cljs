@@ -146,18 +146,17 @@
     (let [ast-before (js->clj (js/esprima.parse code))
           harnocode  (harnify code img w)
           ast-after  (js->clj (js/esprima.parse harnocode))
-          _ (println "-----")
           msg        (if (= ast-before ast-after)
-                      "OK"
-                      (str "Differs: " (js/escodegen.generate ast-after)) "\nFAIL")]
+                      "Validate: OK"
+                      (str "Differs: " "\nFAIL"))]
       (println msg))
     (catch js/Error e
       (println "Parse error: " e))))
 
 ;; TODO: add unused tokens
 
-(let [code      "var a = 42;\nvar b = 43;"
-      code2     "function skipComment() {
+(let [code2     "var a = 42;\nvar b = 43;"
+      code      "function skipComment() {
         var ch, start = 'hello world! this is a long line';
 
         start = (index === 0);
@@ -230,7 +229,7 @@
         harnocode (harnify code @img width)]
     (println "clicked")
     (show-harnocode! harnocode)
-    (validate code img width)))
+    (validate code @img width)))
 
 (defn go-click-listener [event]
   (redraw!))
