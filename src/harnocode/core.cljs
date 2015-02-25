@@ -143,15 +143,15 @@
 
 (defn validate [code img w]
   (try
-    (let [regen-before (js/escodegen.generate (js/esprima.parse code))
-          harnocode  (harnify code img w)
-          regen-after  (js/escodegen.generate (js/esprima.parse harnocode))
-          msg        (if (= regen-before regen-after)
-                      "Validate: OK"
-                      (str "Differs: " "\nFAIL"))]
+    (let [regen-before (js/escodegen.generate (js/esprima.parse code))]
       (set! (.-value (dom/getElement "before")) regen-before)
-      (set! (.-value (dom/getElement "after"))  regen-after)
-      (println msg))
+      (let [harnocode  (harnify code img w)
+            regen-after  (js/escodegen.generate (js/esprima.parse harnocode))
+            msg        (if (= regen-before regen-after)
+                        "Validate: OK"
+                        (str "Differs: " "\nFAIL"))]
+          (set! (.-value (dom/getElement "after"))  regen-after)
+          (println msg)))
     (catch js/Error e
       (println "Parse error: " e))))
 
