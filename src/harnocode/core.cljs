@@ -96,12 +96,14 @@
 (defn split-string-literal [token l result]
  (let [[quote & value-rest] (:value token)
        text   (string/join (butlast value-rest))
-       chunks (re-seq #"..?.?.?" text)
+       chunks (re-seq #".?.?.?.?" text)
        plus   {:value "+", :type "Punctuator"}
        quoted-chunks (map #(str quote % quote) chunks)
        quoted-tokens (map (fn [t] {:value t :type "String"}) quoted-chunks)
        interleaved (butlast (interleave quoted-tokens (cycle [plus])))]
-    interleaved))
+    ;[token]   ;  == do nothing
+    interleaved
+    ))
 
 (defn split-string-literals [tokens l]
   (let [split-token (fn [token]
