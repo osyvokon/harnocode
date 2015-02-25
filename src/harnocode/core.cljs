@@ -122,9 +122,11 @@
                     same-line? #(= (tok-line %1) (tok-line %2))
 
                     need-space (and (not-punct? t1) (not-punct? t2))
-                    glue-toks  (and (= (:value t2) "++") (same-line? t1 t2))]
+                    glue-toks  (and (same-line? t1 t2)
+                                    (or (contains? #{"++" "--"} (:value t2))
+                                        (contains? #{"continue" "break" "return" "throw"} (:value t1))))]
               (cond
-                glue-toks  (recur tokens           (conj result (str (:value t1) (:value t2))))
+                glue-toks  (recur tokens           (conj result (str (:value t1) " " (:value t2) " ")))
                 need-space (recur (conj tokens t2) (conj result (str (:value t1) " ")))
                 :else      (recur (conj tokens t2) (conj result (str (:value t1))))))))
 
