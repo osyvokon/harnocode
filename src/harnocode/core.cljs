@@ -143,6 +143,16 @@
         result (concat arranged unused)]
     (string/join "\n" result)))              ; img must be resized by now, no need in w
 
+(defn validate [code img w]
+  (let [ast-before (js->clj (js/esprima.parse code))
+        harnocode  (harnify code img w)
+        ast-after  (js->clj (js/esprima.parse harnocode))
+        _ (println "-----")
+        msg        (if (= ast-before ast-after)
+                    "OK"
+                    (str "Differs: " (js/escodegen.generate ast-after)) "\nFAIL")]
+    (println msg)))
+
 ;; TODO: add unused tokens
 
 (let [code      "function skipComment() {
@@ -203,6 +213,7 @@
       img @img
       width (count (first img))
       harnocode (harnify code img width)]
+  (validate code img width)
   (show-harnocode! harnocode))
 
 
