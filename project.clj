@@ -31,9 +31,12 @@
              {:id "min"
               :source-paths ["src"]
               :compiler {:output-to "resources/public/js/compiled/harnocode.js"
+                         :externs ["resources/public/js/lib/escodegen/escodegen.browser.js"
+                                   "resources/public/js/lib/esprima/esprima.js"]
                          :main harnocode.core                         
                          :optimizations :advanced
-                         :pretty-print false}}]}
+                         :pretty-print false
+                         :closure-warnings {:externs-validation :off}}}]}
 
   :bower-dependencies [[esprima "~1.2"]]
   :bower {:directory "resources/public/js/lib"}

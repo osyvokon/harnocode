@@ -2,8 +2,7 @@
   (:require [goog.dom :as dom]
             [goog.events :as events]
             [goog.object :as obj]
-            [clojure.string :as string]
-            [figwheel.client :as fw]))
+            [clojure.string :as string]))
 
 (enable-console-print!)
 
@@ -155,9 +154,6 @@
           (println msg)))
     (catch js/Error e
       (println "Parse error: " e))))
-
-
-(fw/start {:load-warninged-code true})
 
 (defn redraw! []
   (let [code (.-value (dom/getElement "output"))
