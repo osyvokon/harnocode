@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <meta charset="UTF-8">
+  </head>
+  <body>
+    <div id="app">
+      <h2>Гарнокод</h2>
+        <p>Завантажити зображення:</p>
+        <input multiple="false" type="file" id="fileInput">
+        <canvas id="viewport"></canvas>
+        <div id="pixels" style="font-family: Monospace, 'Courier New';font-size: small"></div>
+
+      <p>Вставте свій г(ов|ар)нокод сюди:</p>
+      <div>
+        <button id="go">Причепурити</button>
+        <button id="inverse">День/ніч</button>
+      </div>
+      <textarea id="output" rows=1000 autofocus style="background-color: #eee; font-family:monospace;box-sizing: border-box;  width:100%; font-size: small;"></textarea>
+
+    </div>
+
+
+    <script src="js/lib/esprima/esprima.js" type="text/javascript"></script>
+    <script src="js/lib/escodegen/escodegen.browser.min.js" type="text/javascript"></script>
+    <script src="js/compiled/harnocode.js" type="text/javascript"></script>
+  </body>
+</html>
