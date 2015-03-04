@@ -31,7 +31,7 @@
              {:id "min"
               :source-paths ["src"]
               :compiler {:output-to "resources/public/js/compiled/harnocode.js"
-                         :externs ["resources/public/js/lib/escodegen/escodegen.browser.js"
+                         :externs ["resources/public/js/lib/escodegen/escodegen.browser.min.js"
                                    "resources/public/js/lib/esprima/esprima.js"]
                          :main harnocode.core                         
                          :optimizations :advanced
