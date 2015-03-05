@@ -245,11 +245,10 @@
 (defn on-reader-load [event]
   (let [pixels-div (dom/getElement "pixels")
         image      (js/Image.)
-        src        (.-result (.-target event))]
+        src        (.. event -target -result)]
     (events/listen image (.-LOAD events/EventType) on-image-load)
     (set! (.-src image) src)
-    (set! (.-innerHTML pixels-div) ""))
-  (print "onreaderload"))
+    (set! (.-innerHTML pixels-div) "")))
 
 (defn handle-files [event]
   {:pre [(> (alength (.-files (.-target event))) 0)]}
