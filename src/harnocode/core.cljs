@@ -21,7 +21,7 @@
 
 (defn show-harnocode! [harnocode]
   (let [output-area (dom/getElement "output")]
-    (when output-area (set! (.-value output-area) harnocode))))
+    (set! (.-value output-area) harnocode)))
 
 ;; Ugly, but have no time to find a better way
 (defn insert [v pos item]
@@ -170,7 +170,7 @@
 (defonce setup-stuff
  (do
   (let [button (dom/getElement "go")]
-   (when button (events/listen button "click" go-click-listener)))
+   (events/listen button "click" go-click-listener))
   (events/listen (dom/getElement "inverse") "click"
     (fn [event]
      (swap! img invert-image)
@@ -215,12 +215,9 @@
       )))
 
 (defn display-image-array [pixels]
-  (let [pixels-div (dom/getElement "pixels")]
-    (when pixels-div
-      (let [s (pixels-to-string pixels [])]
-        (set! (.-innerHTML pixels-div) s))
-      )
-    ))
+  (let [pixels-div (dom/getElement "pixels")
+        s          (pixels-to-string pixels [])]
+    (set! (.-innerHTML pixels-div) s)))
 
 (defonce max-image-dimension 224)
 
@@ -260,10 +257,7 @@
 
 (defn on-dom-loaded []
   (let [file-upload (dom/getElement "fileInput")]
-    (when file-upload
-      (print file-upload)
-      (events/listen file-upload "change" handle-files)))
-  (print "domready"))
+    (events/listen file-upload "change" handle-files)))
 
 (def w (dom/getWindow))
 (events/listen w (.-DOMCONTENTLOADED events/EventType) on-dom-loaded)
