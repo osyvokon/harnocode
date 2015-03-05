@@ -86,14 +86,15 @@
 (defn split-string-literal [token l result]
  (let [[quote & value-rest] (:value token)
        text   (string/join (butlast value-rest))
-       chunks (re-seq #".?.?.?.?" text)
+       chunks (string/split text " ")
        plus   {:value "+", :type "Punctuator"}
-       quoted-chunks (map #(str quote % quote) chunks)
+       quoted-chunks (map #(str quote % " " quote) chunks)
        quoted-tokens (map (fn [t] {:value t :type "String"}) quoted-chunks)
+       open-brace  {:value "(" :type "Punctuator"}
+       close-brace {:value ")" :type "Punctuator"}
        interleaved (butlast (interleave quoted-tokens (cycle [plus])))]
-    [token]   ;  == do nothing
-    ;interleaved
-    ))
+    ;[token]   ;  == do nothing
+    (concat [open-brace] interleaved [close-brace])))
 
 (defn split-string-literals [tokens l]
   (let [split-token (fn [token]
@@ -230,29 +231,25 @@
   ;new-h (* (/ h w) new-w)
 
 (defn on-image-load [event]
-  (let [image (.-target event)
-        canvas (dom/getElement "viewport")
-        context (.getContext canvas "2d")
-        ]
-    (set! (.-width canvas) (.-width image))
+  (let [image   (.-target event)
+        canvas  (dom/getElement "viewport")
+        context (.getContext canvas "2d")]
+    (set! (.-width canvas)  (.-width image))
     (set! (.-height canvas) (.-height image))
     (.drawImage context image 0 0)
-    (let [pixels (rescale-width (black-and-white context canvas))]
-      (comment print pixels)
-      (comment display-image-array pixels)
-      (reset! img pixels)
-      (redraw!))))
+    (->> (black-and-white context canvas)
+         rescale-width
+         (reset! img))
+    (redraw!)))
 
 (defn on-reader-load [event]
   (let [pixels-div (dom/getElement "pixels")
-        image (js/Image.)
-        src (.-result (.-target event))]
+        image      (js/Image.)
+        src        (.-result (.-target event))]
     (events/listen image (.-LOAD events/EventType) on-image-load)
     (set! (.-src image) src)
-    (set! (.-innerHTML pixels-div) "")
-    )
-  (print "onreaderload")
-  )
+    (set! (.-innerHTML pixels-div) ""))
+  (print "onreaderload"))
 
 (defn handle-files [event]
   {:pre [(> (alength (.-files (.-target event))) 0)]}
