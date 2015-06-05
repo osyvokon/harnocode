@@ -112,7 +112,8 @@
                     tok-line   #(get-in % [:loc :end :line])
                     same-line? #(= (tok-line %1) (tok-line %2))
 
-                    need-space (and (not-punct? t1) (not-punct? t2))
+                    need-space (or (and (not-punct? t1) (not-punct? t2))
+                                   (and (= (:value t1) (:value t2))))       ; hack to fix cases like "+ +" -> "++". would be nice to make finer condition
                     glue-toks  (and (same-line? t1 t2)
                                     (or (contains? #{"++" "--"} (:value t2))
                                         (contains? #{"continue" "break" "return" "throw"} (:value t1))))]
