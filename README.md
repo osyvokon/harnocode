@@ -10,10 +10,7 @@ transformation.
 
 ### How it works:
 
-1. You upload _your_ javascript code (preferrably minified, but non-minified is okay too).
-2. You upload _your_ favorite image -- not too big and icon-like images work the best.
-3. You get back beautifully looking code (**harnocode**!).  It remains valid
-   and functional, so go ahead and deploy it!  
+TODO
 
 
 ### Examples:
@@ -35,16 +32,7 @@ Now comes the actual TODO: re-do examples.
 
 ### Building and developing
 
-```sh
-
-    $ lein bower install
-    $ lein figwheel
-```
-
-Project now served at http://localhost:3449/ 
-
-If you want to see it in action but don't want to install Clojure/ClojureScript
-stack, wait a little -- hosted version is on the way.
+TODO
 
 
 ### About
@@ -55,3 +43,5 @@ in Kyiv, Ukraine.  It grabbed a prize there.
 Though hackathon is over, I'm planning to add more cool features, and there
 will be hosted version soon, so stay tuned! 
 
+
+TODO
