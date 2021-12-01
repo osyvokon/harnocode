@@ -1,4 +1,5 @@
 {
+    "name": "harnocode",
     "dependencies": {
         "esprima": "^4.0.1",
         "js2image": "^1.1.0"
@@ -10,5 +11,9 @@
     "scripts": {
         "test": "mocha",
         "test-watch": "mocha -w --reporter min"
+    },
+    "main": "./bin/index.js",
+    "bin": {
+        "harnocode": "node ./bin/index.js"
     }
 }

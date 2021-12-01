@@ -13,6 +13,8 @@ exports.harnocode = function (code, mask) {
   lines.map(groups => {
     let lineResult = [];
     let offset = 0;
+    if (tokenIndex >= tokens.length)
+      return;
     groups.forEach(group => {
       let groupWidth = group[0].length;
       if (group.index < offset) {
@@ -85,10 +87,8 @@ function justify(tokens, width) {
 exports.formatFile = function (path) {
   var program = fs.readFileSync("./gantt.module.js").toString();
   var program = fs.readFileSync("harnocode.js").toString();
-  console.log(program.length);
+  let mask = "xxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx\n".repeat(100);
 
-  var tokens = esprima.tokenize(program);
-  console.log(tokens.length);
-  console.log(tokens);
-  console.log(`{tokens.length} world`)
+  let result = exports.harnocode(program, mask);
+  process.stdout.write(result);
 }
