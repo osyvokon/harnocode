@@ -53,6 +53,22 @@ console
       assert.deepEqual(groupTokens, [".", "log"]);
     });
   });
+
+  describe("#justify()", function() {
+    const justify = __get__("justify");
+    it("should add spaces evenly", () => {
+      let tokens = ["a", "b", "c"];
+      let width = 10;
+      let result = justify(tokens, width);
+      assert.equal(result.length, width);
+      assert.equal(result, "a   b    c");
+    });
+    it("should handle empty input correctly", () => {
+      let tokens = [];
+      let width = 3;
+      assert.equal(justify(tokens, width), "   ");
+    });
+  });
 });
 
 
