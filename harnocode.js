@@ -40,7 +40,29 @@ exports.harnocode = function (code, mask) {
   // Add remaining tokens if mask is shorter than code
   let remainder = tokens.slice(tokenIndex).join("");  // TODO: space is needed sometimes
   result.push(remainder);
-  return result.join("\n");
+  let resultStr = result.join("\n");
+
+  // Make sure we don't break the code
+  validate(code, resultStr);
+
+  return resultStr;
+}
+
+function validate(code1, code2)
+{
+  let tokens1 = esprima.tokenize(code1, {loc: true});
+  let tokens2 = esprima.tokenize(code2, {loc: true});
+
+  tokens1.forEach((t1, i) => {
+    let t2 = tokens2[i];
+    if (t1.value != t2.value) {
+      process.stderr.write("Tokens mismatch:\n");
+      process.stderr.write(`  line:     ${t1.loc.start.line}\n`);
+      process.stderr.write(`  expected: ${t1.value}\n`);
+      process.stderr.write(`  actual:   ${t2.value}\n`);
+      process.exit(1);
+    }
+  });
 }
 
 
