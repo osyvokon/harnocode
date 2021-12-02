@@ -5,7 +5,6 @@ exports.harnocode = function (code, mask) {
   const tokensFull = esprima.tokenize(code);
   const tokens = tokensFull.map((t) => t.value);
   const lines = splitMaskToGroups(mask);
-  console.log(lines);
   let tokenIndex = 0;
   let groupIndex = 0;
   let result = [];
@@ -29,7 +28,6 @@ exports.harnocode = function (code, mask) {
       let groupTokens = takeTokens(tokens, groupWidth, tokenIndex);
       let groupTokensJustified = justify(groupTokens, groupWidth);
       let padding = " ".repeat(Math.max(0, group.index - offset));
-      console.log(`"${padding}"${groupTokensJustified}`);
       offset += padding.length + groupTokensJustified.length;
       tokenIndex += groupTokens.length;
       lineResult.push(padding);
@@ -42,7 +40,6 @@ exports.harnocode = function (code, mask) {
   // Add remaining tokens if mask is shorter than code
   let remainder = tokens.slice(tokenIndex).join("");  // TODO: space is needed sometimes
   result.push(remainder);
-  console.log(result);
   return result.join("\n");
 }
 
@@ -79,8 +76,22 @@ function takeTokens(tokens, groupLength, tokenIndex)
 }
 
 function justify(tokens, width) {
-  // TODO
-  return tokens.join("");
+  if (tokens.length == 0)
+    return " ".repeat(width);
+
+  let tokensWidth = tokens.reduce((a, b) => a + b.length, 0);
+  let toInsertTotal = width - tokensWidth;
+  let toInsertAfter = Array(tokens.length - 1).fill(0);
+  let insertedActual = 0;
+  for (let i = 0; i < toInsertAfter.length; i++) {
+    let expectedRunningInserted = Math.round(toInsertTotal * (i / toInsertAfter.length));
+    toInsertAfter[i] = Math.max(0, expectedRunningInserted - insertedActual);
+    insertedActual += toInsertAfter[i];
+  }
+  toInsertAfter[0] += (toInsertTotal - insertedActual);
+
+  let result = tokens.map((token, i) => token + " ".repeat(toInsertAfter[i]));
+  return result.join("");
 }
 
 
