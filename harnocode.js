@@ -98,7 +98,24 @@ function justify(tokens, width) {
 exports.formatFile = function (path) {
   var program = fs.readFileSync("./gantt.module.js").toString();
   var program = fs.readFileSync("harnocode.js").toString();
-  let mask = "xxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx\n".repeat(100);
+  let mask = `\
+xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+`.repeat(100);
 
   let result = exports.harnocode(program, mask);
   process.stdout.write(result);
