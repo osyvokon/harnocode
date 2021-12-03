@@ -2,8 +2,7 @@ const esprima = require("esprima");
 const fs = require("fs");
 
 exports.harnocode = function (code, mask) {
-  const tokensFull = esprima.tokenize(code);
-  const tokens = tokensFull.map((t) => t.value);
+  const tokens = tokenize(code);
   const lines = splitMaskToGroups(mask);
   let tokenIndex = 0;
   let groupIndex = 0;
@@ -42,10 +41,47 @@ exports.harnocode = function (code, mask) {
   result.push(remainder);
   let resultStr = result.join("\n");
 
-  // Make sure we don't break the code
-  validate(code, resultStr);
-
   return resultStr;
+}
+
+function tokenize(code)
+{
+  const tokens = esprima.tokenize(code);
+  let result = [];
+  const isPunct = (token) => token.type == "Punctuator";
+
+  for (var i = 0; i < tokens.length - 1; i++) {
+    let t1 = tokens[i];
+    let t2 = tokens[i + 1];
+    result.push(t1.value);
+
+    // we don't need space between non-punct and punct
+    // we need space in all other cases
+    /**
+    let noSpace = ((isPunct(t1) && !isPunct(t2)) ||
+                   (isPunct(t2) && !isPunct(t1)));
+    let needSpace = ((isPunct(t1) && isPunct(t2)) ||
+                     (!isPunct(t1) && !isPunct(t2)));
+    **/
+
+    // This is an easy (but slow) way to ensure we don't break tokenization
+    // by not inserting space between tokens.
+    // If it's too slow, replace with a bunch of rules like in harnocode v1
+    let needSpace;
+    try {
+      needSpace = esprima.tokenize(t1.value + t2.value).length != 2;
+    } catch (error) {
+      needSpace = true;
+    }
+
+    if (needSpace)
+      result.push(" ");
+  }
+
+  if (tokens.length > 0)
+    result.push(tokens.at(-1).value);
+
+  return result;
 }
 
 function validate(code1, code2)
@@ -53,16 +89,18 @@ function validate(code1, code2)
   let tokens1 = esprima.tokenize(code1, {loc: true});
   let tokens2 = esprima.tokenize(code2, {loc: true});
 
-  tokens1.forEach((t1, i) => {
+  for (var i in tokens1) {
+    let t1 = tokens1[i];
     let t2 = tokens2[i];
     if (t1.value != t2.value) {
       process.stderr.write("Tokens mismatch:\n");
       process.stderr.write(`  line:     ${t1.loc.start.line}\n`);
       process.stderr.write(`  expected: ${t1.value}\n`);
       process.stderr.write(`  actual:   ${t2.value}\n`);
-      process.exit(1);
+      return false;
     }
-  });
+  }
+  return true;
 }
 
 
@@ -137,8 +175,11 @@ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
 xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-`.repeat(100);
+`.repeat(10000);
 
   let result = exports.harnocode(program, mask);
+  if (!validate(program, result))
+    process.exit(1);
+
   process.stdout.write(result);
 }

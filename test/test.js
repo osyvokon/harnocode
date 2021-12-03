@@ -69,6 +69,16 @@ console
       assert.equal(justify(tokens, width), "   ");
     });
   });
+
+
+  describe("tokenize()", function() {
+    const tokenize = __get__("tokenize");
+    it("should add virtual space tokens in places where space is required", () => {
+      let code = "let a = 42;";
+      let expected = ["let", " ", "a", "=", "42", ";"];
+      assert.deepEqual(tokenize(code), expected);
+    });
+  });
 });
 
 
