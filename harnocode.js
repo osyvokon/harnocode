@@ -59,6 +59,18 @@ function tokenize(code)
     let t2 = tokens[i + 1];
     result.push(t1.value);
 
+    if (needSpace(t1, t2))
+      result.push(" ");
+  }
+
+  if (tokens.length > 0)
+    result.push(tokens.at(-1).value);
+
+  return result;
+}
+
+function needSpace(token1, token2)
+{
     // we don't need space between non-punct and punct
     // we need space in all other cases
     /**
@@ -71,20 +83,12 @@ function tokenize(code)
     // This is an easy (but slow) way to ensure we don't break tokenization
     // by not inserting space between tokens.
     // If it's too slow, replace with a bunch of rules like in harnocode v1
-    let needSpace;
+    let result;
     try {
-      needSpace = esprima.tokenize(t1.value + t2.value).length != 2;
+      result = esprima.tokenize(token1.value + token2.value).length != 2;
     } catch (error) {
-      needSpace = true;
+      result = true;
     }
-
-    if (needSpace)
-      result.push(" ");
-  }
-
-  if (tokens.length > 0)
-    result.push(tokens.at(-1).value);
-
   return result;
 }
 
