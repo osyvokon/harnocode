@@ -1,7 +1,11 @@
 const esprima = require("esprima");
+const escodegen = require("escodegen");
 const fs = require("fs");
 
 exports.harnocode = function (code, mask) {
+  // Regenerating code from AST will inserting omitted semicolons.
+  // We need it for safer manipulations later on
+  code = escodegen.generate(esprima.parse(code));
   const tokens = tokenize(code);
   const lines = splitMaskToGroups(mask);
   let tokenIndex = 0;
@@ -86,20 +90,21 @@ function tokenize(code)
 
 function validate(code1, code2)
 {
-  let tokens1 = esprima.tokenize(code1, {loc: true});
-  let tokens2 = esprima.tokenize(code2, {loc: true});
-
-  for (var i in tokens1) {
-    let t1 = tokens1[i];
-    let t2 = tokens2[i];
-    if (t1.value != t2.value) {
-      process.stderr.write("Tokens mismatch:\n");
-      process.stderr.write(`  line:     ${t1.loc.start.line}\n`);
-      process.stderr.write(`  expected: ${t1.value}\n`);
-      process.stderr.write(`  actual:   ${t2.value}\n`);
-      return false;
-    }
+  try  {
+    var original = escodegen.generate(esprima.parse(code1));
+    var harnified = escodegen.generate(esprima.parse(code2));
+  } catch (error) {
+    process.stderr.write(`Error parsing harnified code: \n  ${error}`);
+    return false;
   }
+
+  if (original != harnified) {
+    process.stderr.write(`Broken AST!`);
+    const LineDiff = require("line-diff");
+    process.stderr.write(new LineDiff(original, harnified).toString());
+    return false;
+  }
+
   return true;
 }
 
