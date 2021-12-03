@@ -17,8 +17,9 @@ exports.harnocode = function (code, mask) {
     let offset = 0;
     if (tokenIndex >= tokens.length)
       return;
-    groups.forEach(group => {
+    groups.forEach((group, i) => {
       let groupWidth = group[0].length;
+      let isBeforeNewline = (i == groups.length-1);
       if (group.index < offset) {
         // Happens when we overflow preceeding groups
         // In this case we should shrink current group
@@ -28,7 +29,8 @@ exports.harnocode = function (code, mask) {
           return;
       }
 
-      let groupTokens = takeTokens(tokens, groupWidth, tokenIndex);
+      let groupTokens = takeTokens(tokens, groupWidth, tokenIndex, isBeforeNewline);
+      // TODO: remove dummy space tokens
       let groupTokensJustified = justify(groupTokens, groupWidth);
       let padding = " ".repeat(Math.max(0, group.index - offset));
       offset += padding.length + groupTokensJustified.length;
@@ -126,17 +128,28 @@ function splitLineToGroups(line) {
 }
 
 
-function takeTokens(tokens, groupLength, tokenIndex)
+function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
 {
   let toTake = [];
   let toTakeLength = 0;
+  let specialTokens = ["var", "do", "while", "continue", "break", "return", "throw"];
   while (tokenIndex < tokens.length) {
     let token = tokens[tokenIndex];
     let canTake = (toTakeLength + token.length) <= groupLength;
     if (toTakeLength == 0)
       canTake = true;
+
+    if (isBeforeNewline && !canTake) {
+      // prevent inserting newline after special tokens as it may affect AST
+      if (specialTokens.includes(toTake.at(-1)))
+        canTake = true;
+      if (specialTokens.includes(toTake.at(-2))) // because of dummy space tokens
+        canTake = true;
+    }
+
     if (!canTake)
       break;
+
     toTake.push(tokens[tokenIndex]);
     toTakeLength += tokens[tokenIndex].length;
     tokenIndex += 1;
@@ -159,7 +172,7 @@ function justify(tokens, width) {
   }
   toInsertAfter[0] += (toInsertTotal - insertedActual);
 
-  let result = tokens.map((token, i) => token + " ".repeat(toInsertAfter[i]));
+  let result = tokens.map((token, i) => token + " ".repeat(Math.max(0, toInsertAfter[i])));
   return result.join("");
 }
 

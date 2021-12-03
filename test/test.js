@@ -36,6 +36,7 @@ console
     //             console.log
     let groupLength = "console.lo".length;
     let tokenIndex = 0;
+    let isBeforeNewline = false;
     it("should stop taking tokens before their length exceed group's length", () => {
       let groupTokens = takeTokens(tokens, groupLength, tokenIndex);
       assert.deepEqual(groupTokens, ["console", "."]);
@@ -52,6 +53,18 @@ console
       let groupTokens = takeTokens(tokens, groupLength, tokenIndex);
       assert.deepEqual(groupTokens, [".", "log"]);
     });
+
+    it("shouldn't end line with the tokens that may break AST", () => {
+      // Native implementation would return just one token.
+      // This would result in implicitly inserting a semicolon:
+      //    return;
+      //    'string';
+      let tokens = ["return", " ", "'string'"];
+      let groupLength = 1;
+      let isBeforeNewline = true;
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      assert.deepEqual(groupTokens, tokens);
+    });
   });
 
   describe("#justify()", function() {
@@ -67,6 +80,11 @@ console
       let tokens = [];
       let width = 3;
       assert.equal(justify(tokens, width), "   ");
+    });
+    it("should handle input that is longer that width", () => {
+      let tokens = ["answer", "=", "42"];
+      let width = 3;
+      assert.equal(justify(tokens, width), "answer=42");
     });
   });
 
