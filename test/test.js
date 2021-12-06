@@ -65,6 +65,24 @@ console
       let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
       assert.deepEqual(groupTokens, tokens);
     });
+
+    it("shouldn't end line with the tokens that may break AST -- ++", () => {
+      let tokens = ["s", "++"];
+      let tokenIndex = 0;
+      let groupLength = 1;
+      let isBeforeNewline = true;
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      assert.deepEqual(groupTokens, tokens);
+    });
+
+    it("shouldn't end line with the tokens that may break AST space -- ++", () => {
+      let tokens = ["s", " ", "++"];
+      let tokenIndex = 0;
+      let groupLength = 1;
+      let isBeforeNewline = true;
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      assert.deepEqual(groupTokens, tokens);
+    });
   });
 
   describe("#justify()", function() {
