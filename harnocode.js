@@ -197,27 +197,8 @@ function justify(tokens, width) {
 }
 
 
-exports.formatFile = function (path, options) {
+exports.formatFile = function (path, mask, options) {
   var program = fs.readFileSync(path).toString();
-  let mask = `\
-xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
- xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
- xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-`.repeat(10000);
-
   let result = exports.harnocode(program, mask);
 
   if (!options['skip-validation'])
