@@ -4,6 +4,37 @@ const commandLineArgs = require('command-line-args');
 const commandLineUsage = require('command-line-usage');
 const fs = require("fs");
 
+
+function loadMask(path)
+{
+  const defaultMask = `\
+xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
+`.repeat(10000);
+  if (!path)
+    return defaultMask;
+
+  return fs.readFileSync(options.mask).toString();
+
+}
+
+
+
+
 const optionsDefs = [
   { name: "input", type: String, defaultOption: true },
   { name: "mask", type: String },
@@ -23,28 +54,5 @@ if (!options.input && !options.mask) {
   process.exit(-1);
 }
 
-let mask;
-if (!options.mask) {
-  mask = `\
-xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
- xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-       xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-      xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-     xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-    xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-   xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
- xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
-`.repeat(10000);
-} else {
-  mask = fs.readFileSync(options.mask).toString();
-}
-
+let mask = loadMask(options.mask);
 harnocode.formatFile(options.input, mask, options);
