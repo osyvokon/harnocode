@@ -5,7 +5,14 @@ const fs = require("fs");
 exports.harnocode = function (code, mask) {
   // Regenerating code from AST will inserting omitted semicolons.
   // We need it for safer manipulations later on
-  code = escodegen.generate(esprima.parse(code));
+  const format = {
+    safeConcatenation: true,
+    escapeless: true,
+    semicolons: true,
+    renumber: true,
+    quotes: "auto",
+  }
+  code = escodegen.generate(esprima.parse(code), {format: format});
   const tokens = tokenize(code);
   const lines = splitMaskToGroups(mask);
   let tokenIndex = 0;
