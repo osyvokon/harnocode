@@ -133,26 +133,39 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
   let toTake = [];
   let toTakeLength = 0;
   let specialTokens = ["var", "do", "while", "continue", "break", "return", "throw"];
+
   while (tokenIndex < tokens.length) {
     let token = tokens[tokenIndex];
     let canTake = (toTakeLength + token.length) <= groupLength;
     if (toTakeLength == 0)
       canTake = true;
+    let toTakeNext = canTake? 1 : 0;
 
     if (isBeforeNewline && !canTake) {
       // prevent inserting newline after special tokens as it may affect AST
       if (specialTokens.includes(toTake.at(-1)))
-        canTake = true;
+        toTakeNext = 1;
       if (specialTokens.includes(toTake.at(-2))) // because of dummy space tokens
-        canTake = true;
+        toTakeNext = 1;
+
+      // Can't start newline with the following tokens (TODO??)
+      if (["++", "--"].includes(tokens.at(tokenIndex + 0)))
+        toTakeNext = 1;
+      if (["++", "--"].includes(tokens.at(tokenIndex + 1)))
+        toTakeNext = 2;
+      if (["++", "--"].includes(tokens.at(tokenIndex + 2)))
+        toTakeNext = 3;
     }
 
-    if (!canTake)
+    if (!toTakeNext)
       break;
 
-    toTake.push(tokens[tokenIndex]);
-    toTakeLength += tokens[tokenIndex].length;
-    tokenIndex += 1;
+    while (toTakeNext) {
+      toTake.push(tokens[tokenIndex]);
+      toTakeLength += tokens[tokenIndex].length;
+      tokenIndex += 1;
+      toTakeNext -= 1;
+    }
   }
   return toTake;
 }
