@@ -190,9 +190,8 @@ function justify(tokens, width) {
 }
 
 
-exports.formatFile = function (path) {
-  var program = fs.readFileSync("./gantt.module.js").toString();
-  var program = fs.readFileSync("harnocode.js").toString();
+exports.formatFile = function (path, options) {
+  var program = fs.readFileSync(path).toString();
   let mask = `\
 xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
  xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
@@ -213,8 +212,10 @@ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
 `.repeat(10000);
 
   let result = exports.harnocode(program, mask);
-  if (!validate(program, result))
-    process.exit(1);
+
+  if (!options['skip-validation'])
+    if (!validate(program, result))
+      process.exit(1);
 
   process.stdout.write(result);
 }

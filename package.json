@@ -1,6 +1,8 @@
 {
     "name": "harnocode",
     "dependencies": {
+        "command-line-args": "^5.2.0",
+        "command-line-usage": "^6.1.1",
         "escodegen": "^2.0.0",
         "esprima": "^4.0.1",
         "js2image": "^1.1.0"
