@@ -141,11 +141,11 @@ function splitStringLiteral2(str, size)
 
   str = str.slice(1, -1);  // remove quotes
   return [
-    '(',
+    //'(',
     quote + str.slice(0, size) + quote,
     '+',
     quote + str.slice(size) + quote,
-    ')'
+    //')'
   ]
 }
 
@@ -211,6 +211,8 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
   let toTake = [];
   let toTakeLength = 0;
   let specialTokens = ["var", "do", "while", "continue", "break", "return", "throw"];
+  const isStringLiteral = (s) => (s.startsWith("'") && s.endsWith("'"));
+  const isLongStringLiteral = (s) => isStringLiteral(s) && s.length >= 10;
 
   while (tokenIndex < tokens.length) {
     let token = tokens[tokenIndex];
@@ -235,6 +237,15 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
         toTakeNext = 3;
     }
 
+    // If we haven't reach the desired group width yet
+    // and we're about to discard a long string literal,
+    // don't do it. Take the string literal and split it later.
+    if (!toTakeNext) {
+      const underflow = groupLength - toTakeLength;
+      if (underflow > 5 && isLongStringLiteral(token))
+        toTakeNext = 1;
+    }
+
     if (!toTakeNext)
       break;
 
@@ -248,7 +259,6 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
 
   // If the group ends with a long dangling string literal, split it
   const lastToken = toTake.at(-1);
-  const isStringLiteral = (s) => (s.startsWith("'") && s.endsWith("'"));
   const overflow = toTakeLength - groupLength;
   if (overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
     let splitSize = lastToken.length - overflow - 1 - 2; // account for quotes and '('
