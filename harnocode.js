@@ -38,9 +38,7 @@ exports.harnocode = function (code, mask, options) {
   const lines = splitMaskToGroups(mask);
   let tokenIndex = 0;
   let groupIndex = 0;
-  let result = [];
-
-  lines.map(groups => {
+  let result = lines.map(groups => {
     let lineResult = [];
     let offset = 0;
     if (tokenIndex >= tokens.length)
@@ -58,6 +56,7 @@ exports.harnocode = function (code, mask, options) {
       }
 
       let groupTokens = takeTokens(tokens, groupWidth, tokenIndex, isBeforeNewline);
+
       // TODO: remove dummy space tokens
       let groupTokensJustified = justify(groupTokens, groupWidth);
       let padding = " ".repeat(Math.max(0, group.index - offset));
@@ -66,8 +65,7 @@ exports.harnocode = function (code, mask, options) {
       lineResult.push(padding);
       lineResult.push(groupTokensJustified);
     });
-    result.push(lineResult.join(""));
-
+    return lineResult.join("");
   });
 
   // Add remaining tokens if mask is shorter than code
@@ -89,8 +87,9 @@ function tokenize(code)
     let t1 = tokens[i];
     let t2 = tokens[i + 1];
 
-    if (isString(t1) && t1.value.length >= 25)
-      result.push(...splitStringLiteral(t1.value));
+    // TODO: remove split
+    if (isString(t1) && t1.value.length >= 2500)
+      result.push(...splitStringLiteral(t1.value, 5));
     else
       result.push(t1.value);
 
@@ -106,6 +105,7 @@ function tokenize(code)
 
 function splitStringLiteral(str, size)
 {
+  // TODO: check for escapes
   size = size || 5;
   let quote = str[0];
   let result = [];
@@ -124,6 +124,29 @@ function splitStringLiteral(str, size)
     result.push(')');
   }
   return result;
+}
+
+/**
+ * Splits string literal in concatenation of two literals.
+ */
+function splitStringLiteral2(str, size)
+{
+  if (str.length < size + 3)
+    return [str];
+
+  // TODO: check for escapes
+  size = size || 5;
+  let quote = str[0];
+  let result = [];
+
+  str = str.slice(1, -1);  // remove quotes
+  return [
+    '(',
+    quote + str.slice(0, size) + quote,
+    '+',
+    quote + str.slice(size) + quote,
+    ')'
+  ]
 }
 
 function needSpace(token1, token2)
@@ -222,6 +245,19 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
       toTakeNext -= 1;
     }
   }
+
+  // If the group ends with a long dangling string literal, split it
+  const lastToken = toTake.at(-1);
+  const isStringLiteral = (s) => (s.startsWith("'") && s.endsWith("'"));
+  const overflow = toTakeLength - groupLength;
+  if (overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
+    let splitSize = lastToken.length - overflow - 1 - 2; // account for quotes and '('
+    splitSize = Math.max(2, splitSize);
+    const split = splitStringLiteral2(lastToken, splitSize);
+    toTake.splice(-1, 1, ...split.slice(0, 2));
+    tokens.splice(tokenIndex - 1, 1, ...split);
+  }
+
   return toTake;
 }
 
