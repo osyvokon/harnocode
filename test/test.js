@@ -115,6 +115,16 @@ console
       assert.deepEqual(tokenize(code), expected);
     });
   });
+
+  describe("splitStringLiteral()", function () {
+    const splitStringLiteral = __get__("splitStringLiteral");
+    it("should split string literals by substrings of given length", () => {
+      let code = "'hello world!'";
+      let size = 5;
+      let expected = ['(', "'hello'", '+', "' worl'", '+', "'d!'", ')'];
+      assert.deepEqual(splitStringLiteral(code, size), expected);
+    });
+  });
 });
 
 

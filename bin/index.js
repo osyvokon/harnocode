@@ -38,7 +38,8 @@ xxxxxxxxxx           xxxxxxxxxxx      xxxxxxxxxx
 const optionsDefs = [
   { name: "input", type: String, defaultOption: true },
   { name: "mask", type: String },
-  { name: "skip-validation", type: Boolean, help: "Do not validate harnified code"}
+  { name: "skip-validation", type: Boolean, help: "Do not validate harnified code"},
+  { name: "split-long-strings", type: Boolean, help: "Split long strings to fit image better (but the AST won't be preserved)"}
 ]
 const sections = [
   {
