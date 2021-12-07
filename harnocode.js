@@ -2,7 +2,28 @@ const esprima = require("esprima");
 const escodegen = require("escodegen");
 const fs = require("fs");
 
-exports.harnocode = function (code, mask) {
+/**
+ * Format JavaScript code as an ASCII-art image.
+ *
+ * @param {String} code     JavaScript code to format
+ * @param {String} mask     Image mask containing " " and "x" chars
+ * @param {object} options  Additional options
+ *
+ * Options:
+ *
+ *  split-long-strings:  If true, long string literals will be splitted into
+ *                       concatenation of substrings. For example,
+ *                       "hello world" would be split into
+ *                       "hello" + " worl" + "d". This lets code fit
+ *                       the image more nicely. However, the resulting
+ *                       AST will be different from the original, so there
+ *                       will be no way to validate that the resulting
+ *                       code matches original.
+ *
+ *
+ * @return {String} formatted code
+ */
+exports.harnocode = function (code, mask, options) {
   // Regenerating code from AST will inserting omitted semicolons.
   // We need it for safer manipulations later on
   const format = {
@@ -10,7 +31,7 @@ exports.harnocode = function (code, mask) {
     escapeless: true,
     semicolons: true,
     renumber: true,
-    quotes: "auto",
+    quotes: "single",
   }
   code = escodegen.generate(esprima.parse(code), {format: format});
   const tokens = tokenize(code);
@@ -62,11 +83,16 @@ function tokenize(code)
   const tokens = esprima.tokenize(code);
   let result = [];
   const isPunct = (token) => token.type == "Punctuator";
+  const isString = (token) => token.type == "String";
 
   for (var i = 0; i < tokens.length - 1; i++) {
     let t1 = tokens[i];
     let t2 = tokens[i + 1];
-    result.push(t1.value);
+
+    if (isString(t1) && t1.value.length >= 25)
+      result.push(...splitStringLiteral(t1.value));
+    else
+      result.push(t1.value);
 
     if (needSpace(t1, t2))
       result.push(" ");
@@ -75,6 +101,28 @@ function tokenize(code)
   if (tokens.length > 0)
     result.push(tokens.at(-1).value);
 
+  return result;
+}
+
+function splitStringLiteral(str, size)
+{
+  size = size || 5;
+  let quote = str[0];
+  let result = [];
+
+  str = str.slice(1, -1);  // remove quotes
+  for (var i = 0; i < str.length; i += size) {
+    let substr = str.slice(i, i+size);
+    let chunk = `'${substr}'`;
+    result.push(chunk);
+    result.push("+");
+  }
+  result = result.slice(0, -1);  // trailing "+"
+
+  if (result.length > 1) {
+    result.unshift('(');
+    result.push(')');
+  }
   return result;
 }
 
@@ -199,7 +247,7 @@ function justify(tokens, width) {
 
 exports.formatFile = function (path, mask, options) {
   var program = fs.readFileSync(path).toString();
-  let result = exports.harnocode(program, mask);
+  let result = exports.harnocode(program, mask, options);
 
   if (!options['skip-validation'])
     if (!validate(program, result))
