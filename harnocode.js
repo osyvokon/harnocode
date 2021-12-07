@@ -38,40 +38,49 @@ exports.harnocode = function (code, mask, options) {
   const lines = splitMaskToGroups(mask);
   let tokenIndex = 0;
   let groupIndex = 0;
-  let result = lines.map(groups => {
-    let lineResult = [];
-    let offset = 0;
-    if (tokenIndex >= tokens.length)
-      return;
-    groups.forEach((group, i) => {
-      let groupWidth = group[0].length;
-      let isBeforeNewline = (i == groups.length-1);
-      if (group.index < offset) {
-        // Happens when we overflow preceeding groups
-        // In this case we should shrink current group
-        // or skip it entirely
-        groupWidth -= (offset - group.index);
-        if (groupWidth <= 0)
-          return;
-      }
+  let result = [];
 
-      let groupTokens = takeTokens(tokens, groupWidth, tokenIndex, isBeforeNewline);
+  function processMask() {
+    return lines.map(groups => {
+      let lineResult = [];
+      let offset = 0;
+      if (tokenIndex >= tokens.length)
+        return;
+      groups.forEach((group, i) => {
+        let groupWidth = group[0].length;
+        let isBeforeNewline = (i == groups.length-1);
+        if (group.index < offset) {
+          // Happens when we overflow preceeding groups
+          // In this case we should shrink current group
+          // or skip it entirely
+          groupWidth -= (offset - group.index);
+          if (groupWidth <= 0)
+            return;
+        }
 
-      // TODO: remove dummy space tokens
-      let groupTokensJustified = justify(groupTokens, groupWidth);
-      let padding = " ".repeat(Math.max(0, group.index - offset));
-      offset += padding.length + groupTokensJustified.length;
-      tokenIndex += groupTokens.length;
-      lineResult.push(padding);
-      lineResult.push(groupTokensJustified);
+        let groupTokens = takeTokens(tokens, groupWidth, tokenIndex, isBeforeNewline);
+
+        // TODO: remove dummy space tokens
+        let groupTokensJustified = justify(groupTokens, groupWidth);
+        let padding = " ".repeat(Math.max(0, group.index - offset));
+        offset += padding.length + groupTokensJustified.length;
+        tokenIndex += groupTokens.length;
+        lineResult.push(padding);
+        lineResult.push(groupTokensJustified);
+      });
+      return lineResult.join("");
     });
-    return lineResult.join("");
-  });
+  }
+
+  do {
+    result = result.concat(processMask());
+  } while (tokenIndex < tokens.length && options.repeat);
+
 
   // Add remaining tokens if mask is shorter than code
-  let remainder = tokens.slice(tokenIndex).join("");  // TODO: space is needed sometimes
+  let remainder = tokens.slice(tokenIndex).join("");
   result.push(remainder);
-  let resultStr = result.join("\n");
+  let resultStr = result.join("\n").trimEnd();
 
   return resultStr;
 }
