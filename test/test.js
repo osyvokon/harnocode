@@ -83,6 +83,17 @@ console
       let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
       assert.deepEqual(groupTokens, tokens);
     });
+
+    it("should split long dangling string literals", () => {
+      let tokens = ["'hello very long strin'"];
+      let groupLength = 10;
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex);
+
+      assert.deepEqual(groupTokens, ['(', "'hello v'"]);
+      assert.deepEqual(tokens, ['(', "'hello v'", '+', "'ery lon'", '+', "'g strin'", ')']);
+      let actualGroupWidth = groupTokens.reduce((a, b) => a + b.length, 0);
+      assert.equal(actualGroupWidth, groupLength);
+    });
   });
 
   describe("#justify()", function() {
