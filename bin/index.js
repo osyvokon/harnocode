@@ -40,7 +40,9 @@ const optionsDefs = [
   { name: "mask", type: String },
   { name: "repeat", type: Boolean, help: "Repeat mask"},
   { name: "skip-validation", type: Boolean, help: "Do not validate harnified code"},
-  { name: "split-long-strings", type: Boolean, help: "Split long strings to fit image better (but the AST won't be preserved)"}
+  { name: "split-long-strings", type: Boolean, help: "Split long strings to fit image better (but the AST won't be preserved)"},
+  { name: "unsafe-strings", type: Boolean, help: "Do not add parenthesis around string splitting. Use with caution."},
+  { name: "bryntum", type: Boolean, help: "Bryntum-specific magic" },
 ]
 const sections = [
   {
@@ -55,6 +57,9 @@ if (!options.input && !options.mask) {
   process.stdout.write(usage);
   process.exit(-1);
 }
+
+options.splitStrings = Boolean(options['split-long-strings'])
+options.safe = !Boolean(options['unsafe-strings'])
 
 let mask = loadMask(options.mask);
 harnocode.formatFile(options.input, mask, options);

@@ -11,19 +11,20 @@ const fs = require("fs");
  *
  * Options:
  *
- *  split-long-strings:  If true, long string literals will be splitted into
- *                       concatenation of substrings. For example,
- *                       "hello world" would be split into
- *                       "hello" + " worl" + "d". This lets code fit
- *                       the image more nicely. However, the resulting
- *                       AST will be different from the original, so there
- *                       will be no way to validate that the resulting
- *                       code matches original.
+ *  splitStrings:  If true, long string literals could be splitted into
+ *                 concatenation of substrings for nicer image.
+ *                 For example, "hello world" could be split into
+ *                 "hello" + " world". This lets code fit
+ *                 the image more nicely. However, the resulting
+ *                 AST will be different from the original, so there
+ *                 will be no way to validate that the resulting
+ *                 code matches original.
  *
  *
  * @return {String} formatted code
  */
 exports.harnocode = function (code, mask, options) {
+  options = options ?? {};
   // Regenerating code from AST will inserting omitted semicolons.
   // We need it for safer manipulations later on
   const format = {
@@ -39,6 +40,8 @@ exports.harnocode = function (code, mask, options) {
   let tokenIndex = 0;
   let groupIndex = 0;
   let result = [];
+  let splitStrings = options.splitStrings ?? false;
+  let safe = options.safe ?? true;
 
   function processMask() {
     return lines.map(groups => {
@@ -58,7 +61,8 @@ exports.harnocode = function (code, mask, options) {
             return;
         }
 
-        let groupTokens = takeTokens(tokens, groupWidth, tokenIndex, isBeforeNewline);
+        let groupTokens = takeTokens(tokens, groupWidth, tokenIndex,
+          {isBeforeNewline, safe, splitStrings});
 
         // TODO: remove dummy space tokens
         let groupTokensJustified = justify(groupTokens, groupWidth);
@@ -80,6 +84,7 @@ exports.harnocode = function (code, mask, options) {
   // Add remaining tokens if mask is shorter than code
   let remainder = tokens.slice(tokenIndex).join("");
   result.push(remainder);
+  //let resultStr = result.join("\n") // TODO .trimEnd(); ???
   let resultStr = result.join("\n").trimEnd();
 
   return resultStr;
@@ -96,11 +101,7 @@ function tokenize(code)
     let t1 = tokens[i];
     let t2 = tokens[i + 1];
 
-    // TODO: remove split
-    if (isString(t1) && t1.value.length >= 2500)
-      result.push(...splitStringLiteral(t1.value, 5));
-    else
-      result.push(t1.value);
+    result.push(t1.value);
 
     if (needSpace(t1, t2))
       result.push(" ");
@@ -112,50 +113,31 @@ function tokenize(code)
   return result;
 }
 
-function splitStringLiteral(str, size)
-{
-  // TODO: check for escapes
-  size = size || 5;
-  let quote = str[0];
-  let result = [];
-
-  str = str.slice(1, -1);  // remove quotes
-  for (var i = 0; i < str.length; i += size) {
-    let substr = str.slice(i, i+size);
-    let chunk = `'${substr}'`;
-    result.push(chunk);
-    result.push("+");
-  }
-  result = result.slice(0, -1);  // trailing "+"
-
-  if (result.length > 1) {
-    result.unshift('(');
-    result.push(')');
-  }
-  return result;
-}
-
 /**
  * Splits string literal in concatenation of two literals.
  */
-function splitStringLiteral2(str, size)
+function splitStringLiteral(str, size, options)
 {
+  options = options || {};
   if (str.length < size + 3)
     return [str];
 
   // TODO: check for escapes
   size = size || 5;
   let quote = str[0];
-  let result = [];
-
   str = str.slice(1, -1);  // remove quotes
-  return [
-    //'(',
+  let result = [
     quote + str.slice(0, size) + quote,
     '+',
     quote + str.slice(size) + quote,
-    //')'
   ]
+
+  if (options.safe) {
+    result.unshift('(');
+    result.push(')')
+  }
+
+  return result;
 }
 
 function needSpace(token1, token2)
@@ -172,13 +154,16 @@ function needSpace(token1, token2)
     // This is an easy (but slow) way to ensure we don't break tokenization
     // by not inserting space between tokens.
     // If it's too slow, replace with a bunch of rules like in harnocode v1
-    let result;
     try {
-      result = esprima.tokenize(token1.value + token2.value).length != 2;
+      let tokens = esprima.tokenize(token1.value + token2.value);
+      // TODO: tokenization should not change tokens
+      if (tokens.length != 2) return true;
+      if (tokens[0].value != token1.value) return true;
+      if (tokens[1].value != token2.value) return true;
     } catch (error) {
-      result = true;
+      return true;
     }
-  return result;
+  return false;
 }
 
 function validate(code1, code2)
@@ -215,8 +200,12 @@ function splitLineToGroups(line) {
 }
 
 
-function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
+function takeTokens(tokens, groupLength, tokenIndex, options)
 {
+  options = options ?? {};
+  let isBeforeNewline = options.isBeforeNewline ?? false;
+  let splitStrings = options.splitStrings ?? true;
+  let safe = options.safe ?? false;
   let toTake = [];
   let toTakeLength = 0;
   let specialTokens = ["var", "do", "while", "continue", "break", "return", "throw"];
@@ -237,7 +226,7 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
       if (specialTokens.includes(toTake.at(-2))) // because of dummy space tokens
         toTakeNext = 1;
 
-      // Can't start newline with the following tokens (TODO??)
+      // Can't start newline with the following tokens (TODO more? refactor!)
       if (["++", "--"].includes(tokens.at(tokenIndex + 0)))
         toTakeNext = 1;
       if (["++", "--"].includes(tokens.at(tokenIndex + 1)))
@@ -249,7 +238,7 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
     // If we haven't reach the desired group width yet
     // and we're about to discard a long string literal,
     // don't do it. Take the string literal and split it later.
-    if (!toTakeNext) {
+    if (!toTakeNext && splitStrings) {
       const underflow = groupLength - toTakeLength;
       if (underflow > 5 && isLongStringLiteral(token))
         toTakeNext = 1;
@@ -269,10 +258,10 @@ function takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline)
   // If the group ends with a long dangling string literal, split it
   const lastToken = toTake.at(-1);
   const overflow = toTakeLength - groupLength;
-  if (overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
+  if (splitStrings && overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
     let splitSize = lastToken.length - overflow - 1 - 2; // account for quotes and '('
     splitSize = Math.max(2, splitSize);
-    const split = splitStringLiteral2(lastToken, splitSize);
+    const split = splitStringLiteral(lastToken, splitSize, options);
     toTake.splice(-1, 1, ...split.slice(0, 2));
     tokens.splice(tokenIndex - 1, 1, ...split);
   }
@@ -302,11 +291,24 @@ function justify(tokens, width) {
 
 exports.formatFile = function (path, mask, options) {
   var program = fs.readFileSync(path).toString();
+  var rest = "";
+
+  if (options.bryntum) {
+    options['skip-validation'] = true;
+    let index = program.indexOf(';');
+    rest = program.slice(index);
+    program = program.slice(0, index);
+  }
+
   let result = exports.harnocode(program, mask, options);
 
   if (!options['skip-validation'])
     if (!validate(program, result))
       process.exit(1);
+
+  if (options.bryntum) {
+    result = result + "\n" + rest;
+  }
 
   process.stdout.write(result);
 }
