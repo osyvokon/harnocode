@@ -36,7 +36,6 @@ console
     //             console.log
     let groupLength = "console.lo".length;
     let tokenIndex = 0;
-    let isBeforeNewline = false;
     it("should stop taking tokens before their length exceed group's length", () => {
       let groupTokens = takeTokens(tokens, groupLength, tokenIndex);
       assert.deepEqual(groupTokens, ["console", "."]);
@@ -61,8 +60,8 @@ console
       //    'string';
       let tokens = ["return", " ", "'string'"];
       let groupLength = 1;
-      let isBeforeNewline = true;
-      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      let options = {isBeforeNewline: true, splitStrings: false};
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, options);
       assert.deepEqual(groupTokens, tokens);
     });
 
@@ -70,8 +69,8 @@ console
       let tokens = ["s", "++"];
       let tokenIndex = 0;
       let groupLength = 1;
-      let isBeforeNewline = true;
-      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      let options = {isBeforeNewline: true};
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, options);
       assert.deepEqual(groupTokens, tokens);
     });
 
@@ -79,18 +78,19 @@ console
       let tokens = ["s", " ", "++"];
       let tokenIndex = 0;
       let groupLength = 1;
-      let isBeforeNewline = true;
-      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, isBeforeNewline);
+      let options = {isBeforeNewline: true};
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, options);
       assert.deepEqual(groupTokens, tokens);
     });
 
     it("should split long dangling string literals", () => {
-      let tokens = ["'hello very long strin'"];
+      let tokens = ["'hello very long string'"];
       let groupLength = 10;
-      let groupTokens = takeTokens(tokens, groupLength, tokenIndex);
+      let options = {splitStrings: true, safe: true};
+      let groupTokens = takeTokens(tokens, groupLength, tokenIndex, options);
 
       assert.deepEqual(groupTokens, ['(', "'hello v'"]);
-      assert.deepEqual(tokens, ['(', "'hello v'", '+', "'ery lon'", '+', "'g strin'", ')']);
+      assert.deepEqual(tokens, ['(', "'hello v'", '+', "'ery long string'", ')']);
       let actualGroupWidth = groupTokens.reduce((a, b) => a + b.length, 0);
       assert.equal(actualGroupWidth, groupLength);
     });
@@ -129,11 +129,13 @@ console
 
   describe("splitStringLiteral()", function () {
     const splitStringLiteral = __get__("splitStringLiteral");
-    it("should split string literals by substrings of given length", () => {
+    it("should split string literals in two", () => {
       let code = "'hello world!'";
       let size = 5;
-      let expected = ['(', "'hello'", '+', "' worl'", '+', "'d!'", ')'];
-      assert.deepEqual(splitStringLiteral(code, size), expected);
+      assert.deepEqual(splitStringLiteral(code, size, {safe: true}),
+        ['(', "'hello'", '+', "' world!'", ')']);
+      assert.deepEqual(splitStringLiteral(code, size, {safe: false}),
+        ["'hello'", '+', "' world!'"]);
     });
   });
 });
