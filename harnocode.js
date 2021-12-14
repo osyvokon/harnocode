@@ -24,7 +24,7 @@ const fs = require("fs");
  * @return {String} formatted code
  */
 exports.harnocode = function (code, mask, options) {
-  options = options ?? {};
+  options = options || {};
   // Regenerating code from AST will inserting omitted semicolons.
   // We need it for safer manipulations later on
   const format = {
@@ -40,8 +40,8 @@ exports.harnocode = function (code, mask, options) {
   let tokenIndex = 0;
   let groupIndex = 0;
   let result = [];
-  let splitStrings = options.splitStrings ?? false;
-  let safe = options.safe ?? true;
+  let splitStrings = (options.splitStrings === undefined) ? false : options.splitStrings;
+  let safe = (options.safe === undefined) ? true : options.safe;
 
   function processMask() {
     return lines.map(groups => {
@@ -84,7 +84,6 @@ exports.harnocode = function (code, mask, options) {
   // Add remaining tokens if mask is shorter than code
   let remainder = tokens.slice(tokenIndex).join("");
   result.push(remainder);
-  //let resultStr = result.join("\n") // TODO .trimEnd(); ???
   let resultStr = result.join("\n").trimEnd();
 
   return resultStr;
@@ -118,8 +117,8 @@ function tokenize(code)
  */
 function splitStringLiteral(str, size, options)
 {
-  options = options ?? {};
-  size = size ?? 5;
+  options = options || {};
+  size = size || 5;
   if (str.length < size + 3)
     return [str];
 
@@ -210,13 +209,11 @@ function splitLineToGroups(line) {
 
 function takeTokens(tokens, groupLength, tokenIndex, options)
 {
-  options = options ?? {};
-  let isBeforeNewline = options.isBeforeNewline ?? false;
-  let splitStrings = options.splitStrings ?? true;
-  let safe = options.safe ?? false;
+  options = options || {};
   let toTake = [];
   let toTakeLength = 0;
   let specialTokens = ["var", "do", "while", "continue", "break", "return", "throw"];
+  let cantStartWith = ["++", "--", "=>"];  // hacky
   const isStringLiteral = (s) => (s.startsWith("'") && s.endsWith("'"));
   const isLongStringLiteral = (s) => isStringLiteral(s) && s.length >= 10;
 
@@ -227,7 +224,7 @@ function takeTokens(tokens, groupLength, tokenIndex, options)
       canTake = true;
     let toTakeNext = canTake? 1 : 0;
 
-    if (isBeforeNewline && !canTake) {
+    if (options.isBeforeNewline && !canTake) {
       // prevent inserting newline after special tokens as it may affect AST
       if (specialTokens.includes(toTake.at(-1)))
         toTakeNext = 1;
@@ -235,18 +232,18 @@ function takeTokens(tokens, groupLength, tokenIndex, options)
         toTakeNext = 1;
 
       // Can't start newline with the following tokens (TODO more? refactor!)
-      if (["++", "--"].includes(tokens.at(tokenIndex + 0)))
+      if (cantStartWith.includes(tokens.at(tokenIndex + 0)))
         toTakeNext = 1;
-      if (["++", "--"].includes(tokens.at(tokenIndex + 1)))
+      if (cantStartWith.includes(tokens.at(tokenIndex + 1)))
         toTakeNext = 2;
-      if (["++", "--"].includes(tokens.at(tokenIndex + 2)))
+      if (cantStartWith.includes(tokens.at(tokenIndex + 2)))
         toTakeNext = 3;
     }
 
     // If we haven't reach the desired group width yet
     // and we're about to discard a long string literal,
     // don't do it. Take the string literal and split it later.
-    if (!toTakeNext && splitStrings) {
+    if (!toTakeNext && options.splitStrings) {
       const underflow = groupLength - toTakeLength;
       if (underflow > 5 && isLongStringLiteral(token))
         toTakeNext = 1;
@@ -266,7 +263,7 @@ function takeTokens(tokens, groupLength, tokenIndex, options)
   // If the group ends with a long dangling string literal, split it
   const lastToken = toTake.at(-1);
   const overflow = toTakeLength - groupLength;
-  if (splitStrings && overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
+  if (options.splitStrings && overflow > 5 && isStringLiteral(lastToken) && lastToken.length > 5) {
     let splitSize = lastToken.length - overflow - 1 - 2; // account for quotes and '('
     splitSize = Math.max(2, splitSize);
     const split = splitStringLiteral(lastToken, splitSize, options);
