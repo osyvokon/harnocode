@@ -222,13 +222,16 @@ function takeTokens(tokens, groupLength, tokenIndex, options)
     let canTake = (toTakeLength + token.length) <= groupLength;
     if (toTakeLength == 0)
       canTake = true;
+    if (toTakeLength == 1 && toTake[0] == ' ')
+      canTake = true;
+
     let toTakeNext = canTake? 1 : 0;
 
     if (options.isBeforeNewline && !canTake) {
       // prevent inserting newline after special tokens as it may affect AST
       if (specialTokens.includes(toTake.at(-1)))
         toTakeNext = 1;
-      if (specialTokens.includes(toTake.at(-2))) // because of dummy space tokens
+      if (toTake.at(-1) == ' ' && specialTokens.includes(toTake.at(-2)))
         toTakeNext = 1;
 
       // Can't start newline with the following tokens (TODO more? refactor!)
