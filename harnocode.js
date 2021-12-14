@@ -118,12 +118,19 @@ function tokenize(code)
  */
 function splitStringLiteral(str, size, options)
 {
-  options = options || {};
+  options = options ?? {};
+  size = size ?? 5;
   if (str.length < size + 3)
     return [str];
 
-  // TODO: check for escapes
-  size = size || 5;
+
+  // Make sure we don't split a string in the middle of an escapement sequence
+  // This implementation is naive: assume that the longest escapement is of
+  // form `\u1234` and always skip 5 chars after `\`
+  while (str.slice(size+1-5, size +1).includes('\\') && size < str.length) {
+    size++;
+  }
+
   let quote = str[0];
   str = str.slice(1, -1);  // remove quotes
   let result = [
@@ -133,6 +140,7 @@ function splitStringLiteral(str, size, options)
   ]
 
   if (options.safe) {
+    // TODO: do not add nested parenthesis
     result.unshift('(');
     result.push(')')
   }

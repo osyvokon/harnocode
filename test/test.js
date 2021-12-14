@@ -21,8 +21,7 @@ x    x`;
 console
 .  log
 ('Hello!'
-)    ;
-`;
+)    ;`;
       assert.equal(harnocode(code, mask), expected);
     });
 
@@ -136,6 +135,13 @@ console
         ['(', "'hello'", '+', "' world!'", ')']);
       assert.deepEqual(splitStringLiteral(code, size, {safe: false}),
         ["'hello'", '+', "' world!'"]);
+    });
+
+    it("should skip strings with escapement", () => {
+      let code = String.raw`'hello \\u000A world!'`;
+      let size = 7;
+      assert.deepEqual(splitStringLiteral(code, size),
+        ["'hello \\\\u000A'", '+', "' world!'"]);
     });
   });
 });
