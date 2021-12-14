@@ -318,5 +318,6 @@ exports.formatFile = function (path, mask, options) {
     result = result + "\n" + rest;
   }
 
+  process.stdout.write("// harnocode \\\\\n");
   process.stdout.write(result);
 }

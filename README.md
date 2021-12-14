@@ -1,47 +1,64 @@
 Harnocode (Гарнокод)
 ====================
 
-Reformats (and rewrites) javascript code to look like beautiful ASCII-art
-picture.
+Reformats JavaScript code to look like an ASCII-art picture.
 
-Great thing about it is that code stays fully valid and functional after the
-transformation.
+The code should stay functional after the transformation.
 
-
-### How it works:
-
-TODO
 
 
 ### Examples:
 
-I took jquery.min.js and formatted it as these pictures:
+Here are functional copies of harnocode's [source code](./harnocode.js) formatted with itself:
 
-* [Hearty jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-01.js)
-* [Ukrainian partiotic jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-02.js)
-* [Apple's fan jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-05.js)
-* [陰陽 jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-03.js)
-* [Revolution jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-04.js)
-* [PTN HCK OFF jQuery](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/jquery-06.js)
+* [Hearty harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.heart.js)
+* [Ubuntu harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.ubuntu.js)
+* [Apple's fan harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.apple.js)
+* [Ukrainian harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.ukraine.js)
+* [Yin and Yang harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.yin-yang.js)
+* [DNA harnocode](https://raw.githubusercontent.com/asivokon/harnocode/master/examples/harnocode.dna.js)
 
 
-TODO: Examples above are not functional jquery, because I trimmed long tail
-that I though would be boring and wasteful to store.  However, now I think that
-it would be much better to include fully functional harnocoded jquery.
-Now comes the actual TODO: re-do examples.
+### Installation
 
-### Building and developing
+```
+$ npm install -g harnocode
+```
+
+
+### Usage
+
+Command-line:
+
+```
+$ harnocode ./examples/lodash.heart.js --mask masks/ubuntu.txt --split-long-lines > lodash.ubuntu.js
+```
+
+See
+
+```
+$ harnocode
+```
+
+for the full list of available options.
+
+
+Node.js:
 
 TODO
+
+
+
+### Converting images to masks
+
+TODO
+
 
 
 ### About
 
-**Harnocode** was written in 24 hours on DOU Hackathon, held on 21-22 Feb 2015
-in Kyiv, Ukraine.  It grabbed a prize there.
+**Harnocode** v1 was written in ClojureScript during the DOU Hackathon on
+21-22 February, 2015.
 
-Though hackathon is over, I'm planning to add more cool features, and there
-will be hosted version soon, so stay tuned! 
-
-
-TODO
+**Harnocode** v2 is a rewrite in a pure JavaScript. It adds support for
+ECMAScript 2019, npm module and a command-line tool.
