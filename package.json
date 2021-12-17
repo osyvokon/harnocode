@@ -1,5 +1,10 @@
 {
     "name": "harnocode",
+    "version": "2.0.0",
+    "description": "Reformat JavaScript code as an ASCII-art image",
+    "author": "Oleksiy Syvokon <oleksiy.syvokon@gmail.com>",
+    "license": "EPL-1.0",
+    "homepage": "https://github.com/asivokon/harnocode",
     "dependencies": {
         "command-line-args": "^5.2.0",
         "command-line-usage": "^6.1.1",
@@ -16,7 +21,7 @@
         "test": "mocha",
         "test-watch": "mocha -w --reporter min"
     },
-    "main": "./bin/index.js",
+    "main": "harnocode.js",
     "bin": {
         "harnocode": "node ./bin/index.js"
     }
