@@ -1,13 +1,45 @@
-Harnocode (Гарнокод)
-====================
+Harnocode
+=========
 
-Reformats JavaScript code to look like an ASCII-art picture.
+Reformats JavaScript code to look like an ASCII-art picture of your choice. Like this:
+
+```
+                   const                          esprima   =
+               require('esprima');            const   escodegen =
+             require( 'escodegen') ;        const fs=require('fs');
+           exports.harnocode=function(    code,mask,options){options=
+          options||{ };const  format= {  safeConcatenation  :  true  ,
+         escapeless:true,semicolons:true,renumber:true,quotes:'single'}
+         ;code=escodegen.generate(esprima.parse(code),{format:format});
+         const tokens=tokenize(code);const lines=splitMaskToGroups(mask
+         );let  tokenIndex= 0; let groupIndex =0; let result =[ ];let
+         splitStrings=options. splitStrings===undefined?false: options.
+          splitStrings;let safe=options.safe===undefined?true:options.
+           safe;function processMask(){return lines.map(groups=>{let
+             lineResult=[ ];let  offset= 0;if( tokenIndex>=tokens .
+              length)return ;groups .forEach (( group,i )=> {let
+                groupWidth=group[0].length;let isBeforeNewline=i
+                  ==groups.length -1;if( group.index<offset ){
+                    groupWidth -= offset- group .index ; if(
+                      groupWidth <= 0  ) return ; }  let
+                        groupTokens=takeTokens (tokens ,
+                          groupWidth , tokenIndex  , {
+                            isBeforeNewline , safe ,
+                              splitStrings}); let
+                                groupTokensJustified
+                                  = justify  (
+                                    groupTokens
+                                         ,
+```
 
 The code should stay functional after the transformation.
+
+"Harnocode" (__ukr__. гарнокод) means "beautiful code" in the Ukrainian language.
 
 
 
 ### Examples:
+
 
 Here are functional copies of harnocode's [source code](./harnocode.js) formatted with itself:
 
